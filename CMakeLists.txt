@@ -47,37 +47,10 @@ check_cxx_source_compiles("
   HAVE_PTHREAD_GETTHREADID_NP)
 cmake_pop_check_state()
 
-capnp_generate_cpp(MP_PROXY_SRCS MP_PROXY_HDRS include/mp/proxy.capnp)
-
 add_library(util OBJECT src/mp/util.cpp)
 target_include_directories(util PRIVATE
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>)
-
-set(MP_PUBLIC_HEADERS
-  ${MP_PROXY_HDRS}
-  include/mp/proxy-io.h
-  include/mp/proxy-types.h
-  include/mp/proxy.h
-  include/mp/util.h)
-
-add_library(multiprocess STATIC
-  ${MP_PROXY_SRCS}
-  ${MP_PUBLIC_HEADERS}
-  src/mp/proxy.cpp
-  $<TARGET_OBJECTS:util>)
-target_include_directories(multiprocess PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-  ${CAPNP_INCLUDE_DIRECTORY})
-target_link_libraries(multiprocess PRIVATE CapnProto::capnp)
-target_link_libraries(multiprocess PRIVATE CapnProto::capnp-rpc)
-target_link_libraries(multiprocess PRIVATE CapnProto::kj)
-target_link_libraries(multiprocess PRIVATE CapnProto::kj-async)
-set_target_properties(multiprocess PROPERTIES
-    PUBLIC_HEADER "${MP_PUBLIC_HEADERS}")
-install(TARGETS multiprocess EXPORT Multiprocess ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION include/mp)
 
 option(MULTIPROCESS_BUILD_MPGEN "Build mpgen" ON)
 if(MULTIPROCESS_BUILD_MPGEN)
@@ -97,11 +70,41 @@ if(MULTIPROCESS_BUILD_MPGEN)
   install(FILES "include/mpgen.mk" DESTINATION "include")
 endif()
 
+option(MULTIPROCESS_BUILD_LIB "Build multiprocess library" ON)
+if(MULTIPROCESS_BUILD_LIB)
+  capnp_generate_cpp(MP_PROXY_SRCS MP_PROXY_HDRS include/mp/proxy.capnp)
+  set(MP_PUBLIC_HEADERS
+    ${MP_PROXY_HDRS}
+    include/mp/proxy-io.h
+    include/mp/proxy-types.h
+    include/mp/proxy.h
+    include/mp/util.h)
+
+  add_library(multiprocess STATIC
+    ${MP_PROXY_SRCS}
+    ${MP_PUBLIC_HEADERS}
+    src/mp/proxy.cpp
+    $<TARGET_OBJECTS:util>)
+  target_include_directories(multiprocess PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${CAPNP_INCLUDE_DIRECTORY})
+  target_link_libraries(multiprocess PRIVATE CapnProto::capnp)
+  target_link_libraries(multiprocess PRIVATE CapnProto::capnp-rpc)
+  target_link_libraries(multiprocess PRIVATE CapnProto::kj)
+  target_link_libraries(multiprocess PRIVATE CapnProto::kj-async)
+  set_target_properties(multiprocess PROPERTIES
+      PUBLIC_HEADER "${MP_PUBLIC_HEADERS}")
+  install(TARGETS multiprocess EXPORT Multiprocess ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION include/mp)
+
+  configure_file(pkgconfig/libmultiprocess.pc.in "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/libmultiprocess.pc" @ONLY)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/libmultiprocess.pc" DESTINATION "lib/pkgconfig")
+
+  add_subdirectory(example EXCLUDE_FROM_ALL)
+  add_subdirectory(test EXCLUDE_FROM_ALL)
+endif()
+
 configure_file(include/mp/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/mp/config.h")
-configure_file(pkgconfig/libmultiprocess.pc.in "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/libmultiprocess.pc" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/libmultiprocess.pc" DESTINATION "lib/pkgconfig")
 
 install(EXPORT Multiprocess DESTINATION lib/cmake/Multiprocess)
-
-add_subdirectory(example EXCLUDE_FROM_ALL)
-add_subdirectory(test EXCLUDE_FROM_ALL)

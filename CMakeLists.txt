@@ -79,24 +79,27 @@ set_target_properties(multiprocess PROPERTIES
     PUBLIC_HEADER "${MP_PUBLIC_HEADERS}")
 install(TARGETS multiprocess EXPORT Multiprocess ARCHIVE DESTINATION lib PUBLIC_HEADER DESTINATION include/mp)
 
-add_executable(mpgen src/mp/gen.cpp $<TARGET_OBJECTS:util>)
-target_include_directories(mpgen PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-target_include_directories(mpgen PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
-target_link_libraries(mpgen PRIVATE CapnProto::capnp)
-target_link_libraries(mpgen PRIVATE CapnProto::capnp-rpc)
-target_link_libraries(mpgen PRIVATE CapnProto::capnpc)
-target_link_libraries(mpgen PRIVATE CapnProto::kj)
-target_link_libraries(mpgen PRIVATE Threads::Threads)
-set_target_properties(mpgen PROPERTIES
-    INSTALL_RPATH_USE_LINK_PATH TRUE)
-set_target_properties(mpgen PROPERTIES
-    PUBLIC_HEADER include/mp/proxy.capnp)
-install(TARGETS mpgen EXPORT Multiprocess RUNTIME DESTINATION bin PUBLIC_HEADER DESTINATION include/mp)
+option(MULTIPROCESS_BUILD_MPGEN "Build mpgen" ON)
+if(MULTIPROCESS_BUILD_MPGEN)
+  add_executable(mpgen src/mp/gen.cpp $<TARGET_OBJECTS:util>)
+  target_include_directories(mpgen PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+  target_include_directories(mpgen PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
+  target_link_libraries(mpgen PRIVATE CapnProto::capnp)
+  target_link_libraries(mpgen PRIVATE CapnProto::capnp-rpc)
+  target_link_libraries(mpgen PRIVATE CapnProto::capnpc)
+  target_link_libraries(mpgen PRIVATE CapnProto::kj)
+  target_link_libraries(mpgen PRIVATE Threads::Threads)
+  set_target_properties(mpgen PROPERTIES
+      INSTALL_RPATH_USE_LINK_PATH TRUE)
+  set_target_properties(mpgen PROPERTIES
+      PUBLIC_HEADER include/mp/proxy.capnp)
+  install(TARGETS mpgen EXPORT Multiprocess RUNTIME DESTINATION bin PUBLIC_HEADER DESTINATION include/mp)
+  install(FILES "include/mpgen.mk" DESTINATION "include")
+endif()
 
 configure_file(include/mp/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/mp/config.h")
 configure_file(pkgconfig/libmultiprocess.pc.in "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/libmultiprocess.pc" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pkgconfig/libmultiprocess.pc" DESTINATION "lib/pkgconfig")
-install(FILES "include/mpgen.mk" DESTINATION "include")
 
 install(EXPORT Multiprocess DESTINATION lib/cmake/Multiprocess)
 

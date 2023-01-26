@@ -88,7 +88,7 @@ class Logger
 {
 public:
     Logger(bool raise, LogFn& fn) : m_raise(raise), m_fn(fn) {}
-    Logger(Logger&& logger) : m_raise(logger.m_raise), m_fn(logger.m_fn), m_buffer(std::move(logger.m_buffer)) {}
+    Logger(Logger&& logger) noexcept : m_raise(logger.m_raise), m_fn(logger.m_fn), m_buffer(std::move(logger.m_buffer)) {}
     ~Logger() noexcept(false)
     {
         if (m_fn) m_fn(m_raise, m_buffer.str());

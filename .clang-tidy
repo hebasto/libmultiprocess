@@ -19,7 +19,6 @@ readability-*,\
 -readability-identifier-length,\
 -readability-implicit-bool-conversion,\
 -readability-magic-numbers,\
--readability-make-member-function-const,\
 -readability-named-parameter,\
 -readability-uppercase-literal-suffix,\
 -readability-use-anyofallof,\

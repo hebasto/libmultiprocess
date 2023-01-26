@@ -346,7 +346,7 @@ struct AsyncCallable
 template <typename Callable>
 AsyncCallable<typename std::remove_reference<Callable>::type> MakeAsyncCallable(Callable&& callable)
 {
-    return std::move(callable);
+    return std::forward(callable);
 }
 
 //! Format current thread name as "{exe_name}-{$pid}/{thread_name}-{$tid}".

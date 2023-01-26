@@ -1,7 +1,6 @@
 Checks: "-*,\
 bugprone-*,\
 -bugprone-exception-escape,\
--bugprone-move-forwarding-reference,\
 -bugprone-narrowing-conversions,\
 -bugprone-reserved-identifier,\
 -bugprone-suspicious-semicolon,\

@@ -228,7 +228,7 @@ struct Waiter
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         assert(!m_fn);
-        m_fn = std::move(fn);
+        m_fn = std::forward(fn);
         m_cv.notify_all();
     }
 

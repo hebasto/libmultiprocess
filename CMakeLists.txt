@@ -48,6 +48,16 @@ check_cxx_source_compiles("
 cmake_pop_check_state()
 
 capnp_generate_cpp(MP_PROXY_SRCS MP_PROXY_HDRS include/mp/proxy.capnp)
+add_library(mp_proxy OBJECT ${MP_PROXY_SRCS})
+
+option(MULTIPROCESS_RUN_CLANG_TIDY "Run clang-tidy with the compiler." OFF)
+if(MULTIPROCESS_RUN_CLANG_TIDY)
+  find_program(CLANG_TIDY_EXECUTABLE NAMES clang-tidy)
+  if(NOT CLANG_TIDY_EXECUTABLE)
+    message(FATAL_ERROR "MULTIPROCESS_RUN_CLANG_TIDY is ON but clang-tidy is not found.")
+  endif()
+  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}")
+endif()
 
 add_library(util OBJECT src/mp/util.cpp)
 target_include_directories(util PRIVATE
@@ -63,7 +73,7 @@ set(MP_PUBLIC_HEADERS
   include/mp/util.h)
 
 add_library(multiprocess STATIC
-  ${MP_PROXY_SRCS}
+  $<TARGET_OBJECTS:mp_proxy>
   ${MP_PUBLIC_HEADERS}
   src/mp/proxy.cpp
   $<TARGET_OBJECTS:util>)

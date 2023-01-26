@@ -1,0 +1,36 @@
+Checks: "-*,\
+bugprone-*,\
+-bugprone-exception-escape,\
+-bugprone-move-forwarding-reference,\
+-bugprone-narrowing-conversions,\
+-bugprone-reserved-identifier,\
+-bugprone-suspicious-semicolon,\
+misc-*,\
+-misc-non-private-member-variables-in-classes,\
+-misc-no-recursion,\
+-misc-unused-parameters,\
+modernize-*,\
+-modernize-avoid-c-arrays,\
+-modernize-deprecated-headers,\
+-modernize-return-braced-init-list,\
+-modernize-use-emplace,\
+-modernize-use-equals-default,\
+-modernize-use-trailing-return-type,\
+performance-*,\
+-performance-faster-string-find,\
+-performance-inefficient-vector-operation,\
+-performance-noexcept-move-constructor,\
+-performance-unnecessary-value-param,\
+readability-*,\
+-readability-braces-around-statements,\
+-readability-else-after-return,\
+-readability-function-cognitive-complexity,\
+-readability-identifier-length,\
+-readability-implicit-bool-conversion,\
+-readability-magic-numbers,\
+-readability-make-member-function-const,\
+-readability-named-parameter,\
+-readability-uppercase-literal-suffix,\
+-readability-use-anyofallof,\
+"
+HeaderFilterRegex: 'example|include/mp/proxy-io.h|include/mp/proxy-types.h|include/mp/proxy.h|include/mp/util.h|src|test'

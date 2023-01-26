@@ -12,7 +12,6 @@ modernize-*,\
 -modernize-deprecated-headers,\
 -modernize-use-trailing-return-type,\
 performance-*,\
--performance-unnecessary-value-param,\
 readability-*,\
 -readability-braces-around-statements,\
 -readability-else-after-return,\

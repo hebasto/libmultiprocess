@@ -12,7 +12,6 @@ modernize-*,\
 -modernize-deprecated-headers,\
 -modernize-use-trailing-return-type,\
 performance-*,\
--performance-inefficient-vector-operation,\
 -performance-noexcept-move-constructor,\
 -performance-unnecessary-value-param,\
 readability-*,\

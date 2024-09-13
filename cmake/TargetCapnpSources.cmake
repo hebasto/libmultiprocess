@@ -65,8 +65,9 @@ function(target_capnp_sources target include_prefix)
   endif()
 
   foreach(capnp_file IN LISTS TCS_UNPARSED_ARGUMENTS)
+    set(generated_files ${capnp_file}.c++ ${capnp_file}.h ${capnp_file}.proxy-client.c++ ${capnp_file}.proxy-types.h ${capnp_file}.proxy-server.c++ ${capnp_file}.proxy-types.c++ ${capnp_file}.proxy.h)
     add_custom_command(
-      OUTPUT ${capnp_file}.c++ ${capnp_file}.h ${capnp_file}.proxy-client.c++ ${capnp_file}.proxy-types.h ${capnp_file}.proxy-server.c++ ${capnp_file}.proxy-types.c++ ${capnp_file}.proxy.h
+      OUTPUT ${generated_files}
       COMMAND Libmultiprocess::mpgen ${CMAKE_CURRENT_SOURCE_DIR} ${include_prefix} ${CMAKE_CURRENT_SOURCE_DIR}/${capnp_file} ${TCS_IMPORT_PATHS}
       DEPENDS ${capnp_file}
       VERBATIM
@@ -77,6 +78,11 @@ function(target_capnp_sources target include_prefix)
       ${CMAKE_CURRENT_BINARY_DIR}/${capnp_file}.proxy-server.c++
       ${CMAKE_CURRENT_BINARY_DIR}/${capnp_file}.proxy-types.c++
     )
+    string(MAKE_C_IDENTIFIER "${capnp_file}" id)
+    if(NOT TARGET generate_${id}_files)
+      add_custom_target(generate_${id}_files DEPENDS ${generated_files})
+    endif()
+    add_dependencies(${target} generate_${id}_files)
   endforeach()
 
   # Translate include_prefix from a source path to a binary path and add it as a

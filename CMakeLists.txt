@@ -49,6 +49,9 @@ configure_file(include/mp/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/mp/co
 # Generated C++ Capn'Proto schema files
 capnp_generate_cpp(MP_PROXY_SRCS MP_PROXY_HDRS include/mp/proxy.capnp)
 
+add_library(mp_generated OBJECT ${MP_PROXY_SRCS} ${MP_PROXY_HDRS})
+set_target_properties(mp_generated PROPERTIES EXPORT_COMPILE_COMMANDS OFF)
+
 # util library
 add_library(mputil OBJECT src/mp/util.cpp)
 target_include_directories(mputil PRIVATE
@@ -58,7 +61,6 @@ target_include_directories(mputil PRIVATE
 
 # libmultiprocess.a runtime library
 set(MP_PUBLIC_HEADERS
-  ${MP_PROXY_HDRS}
   include/mp/proxy-io.h
   include/mp/proxy-types.h
   include/mp/proxy.h
@@ -85,7 +87,7 @@ set(MP_PUBLIC_HEADERS
   include/mp/type-void.h
   include/mp/util.h)
 add_library(multiprocess STATIC
-  ${MP_PROXY_SRCS}
+  $<TARGET_OBJECTS:mp_generated>
   ${MP_PUBLIC_HEADERS}
   src/mp/proxy.cpp
   $<TARGET_OBJECTS:mputil>)

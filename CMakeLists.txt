@@ -21,7 +21,7 @@ if(Libmultiprocess_ENABLE_CLANG_TIDY)
   if(NOT CLANG_TIDY_EXECUTABLE)
     message(FATAL_ERROR "Libmultiprocess_ENABLE_CLANG_TIDY is ON but clang-tidy is not found.")
   endif()
-  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}")
+  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}" "-p" ${PROJECT_BINARY_DIR})
 endif()
 
 include("cmake/compat_config.cmake")

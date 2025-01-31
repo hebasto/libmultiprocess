@@ -21,8 +21,7 @@ if(Libmultiprocess_ENABLE_CLANG_TIDY)
   if(NOT CLANG_TIDY_EXECUTABLE)
     message(FATAL_ERROR "Libmultiprocess_ENABLE_CLANG_TIDY is ON but clang-tidy is not found.")
   endif()
-  # set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}" "-line-filter=[{\"name\":\"path/to/generated/dir/.*\",\"lines\":[[-1,-1]]}]")
-  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}" "-line-filter=[{\"name\":\"/home/hebasto/git/libmultiprocess/build/include/mp/proxy.capnp.c++\"}]")
+  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXECUTABLE}")
 endif()
 
 include("cmake/compat_config.cmake")
@@ -177,5 +176,3 @@ add_dependencies(install-lib multiprocess)
 # Example and test subdirectories
 add_subdirectory(example EXCLUDE_FROM_ALL)
 add_subdirectory(test EXCLUDE_FROM_ALL)
-
-message("MP_PROXY_SRCS are ${MP_PROXY_SRCS}")

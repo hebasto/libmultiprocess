@@ -13,12 +13,15 @@
 #include <capnp/rpc-twoparty.h>
 
 #include <assert.h>
+#include <condition_variable>
 #include <functional>
 #include <optional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
+#include <thread>
 
 namespace mp {
 struct ThreadContext;
@@ -85,6 +88,8 @@ public:
     ThreadContext& m_thread_context;
     std::thread m_thread;
 };
+
+class EventLoop;
 
 //! Handler for kj::TaskSet failed task events.
 class LoggingErrorHandler : public kj::TaskSet::ErrorHandler

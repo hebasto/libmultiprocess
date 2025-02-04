@@ -6,14 +6,29 @@
 #include <mp/util.h>
 
 #include <algorithm>
+#include <capnp/list.h>
 #include <capnp/schema-parser.h>
+#include <capnp/schema.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <errno.h>
 #include <fstream>
+#include <kj/array.h>
+#include <kj/common.h>
+#include <kj/filesystem.h>
+#include <kj/memory.h>
+#include <kj/string.h>
 #include <map>
 #include <set>
 #include <sstream>
 #include <system_error>
+#include <functional>
+#include <initializer_list>
+#include <stdexcept>
+#include <string>
 #include <unistd.h>
+#include <utility>
 #include <vector>
 
 #define PROXY_BIN "mpgen"

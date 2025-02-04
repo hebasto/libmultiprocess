@@ -12,12 +12,13 @@
 
 #include <assert.h>
 #include <atomic>
-#include <capnp/blob.h>
 #include <capnp/capability.h>
+#include <capnp/rpc.h>
 #include <condition_variable>
 #include <functional>
 #include <future>
 #include <kj/async-io.h>
+#include <kj/async-prelude.h>
 #include <kj/async.h>
 #include <kj/common.h>
 #include <kj/debug.h>
@@ -26,6 +27,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stddef.h>
 #include <stdexcept>
 #include <string>
@@ -35,9 +37,6 @@
 #include <utility>
 
 namespace mp {
-
-template <typename Interface>
-struct ProxyServer;
 
 thread_local ThreadContext g_thread_context;
 

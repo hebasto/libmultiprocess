@@ -5,13 +5,18 @@
 #include <calculator.h>
 #include <fstream>
 #include <init.capnp.h>
-#include <init.capnp.proxy-types.h>
+#include <init.capnp.proxy.h> // IWYU pragma: keep
 #include <init.h>
 #include <iostream>
+#include <kj/async.h>
+#include <kj/common.h>
+#include <kj/memory.h>
 #include <memory>
 #include <mp/proxy-io.h>
 #include <printer.h>
 #include <stdexcept>
+#include <cstring>
+#include <utility>
 
 class CalculatorImpl : public Calculator
 {

@@ -2,12 +2,24 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <calculator.h>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <init.capnp.h>
-#include <init.capnp.proxy-types.h>
+#include <init.capnp.proxy.h>
 #include <iostream>
+#include <kj/async.h>
+#include <kj/common.h>
+#include <string.h>
+#include <memory>
 #include <mp/proxy-io.h>
+#include <mp/util.h>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <vector>
 
 namespace fs = std::filesystem;
 

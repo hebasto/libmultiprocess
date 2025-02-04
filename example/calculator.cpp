@@ -3,8 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <calculator.h>
-// #include <init.capnp.proxy.h>
 #include <init.h>  // for Init
+#include <iostream>
+#include <mp/proxy-io.h>
 
 
 // #include <calculator.h>
@@ -48,11 +49,11 @@ void LogPrint(bool raise, const std::string& message)
 
 int main(int argc, char** argv)
 {
-    // if (argc != 2) {
-    //     std::cout << "Usage: mpcalculator <fd>\n";
-    //     return 1;
-    // }
-    // mp::EventLoop loop("mpcalculator", LogPrint);
+    if (argc != 2) {
+        std::cout << "Usage: mpcalculator <fd>\n";
+        return 1;
+    }
+    mp::EventLoop loop("mpcalculator", LogPrint);
     // int fd = std::stoi(argv[1]);
     // std::unique_ptr<Init> init = std::make_unique<InitImpl>();
     // mp::ServeStream<InitInterface>(loop, fd, *init);

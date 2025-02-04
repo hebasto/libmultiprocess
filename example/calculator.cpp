@@ -5,6 +5,7 @@
 #include <calculator.h>
 #include <init.h>  // for Init
 #include <iostream>
+#include <memory>
 #include <mp/proxy-io.h>
 
 
@@ -54,8 +55,8 @@ int main(int argc, char** argv)
         return 1;
     }
     mp::EventLoop loop("mpcalculator", LogPrint);
-    // int fd = std::stoi(argv[1]);
-    // std::unique_ptr<Init> init = std::make_unique<InitImpl>();
+    int fd = std::stoi(argv[1]);
+    std::unique_ptr<Init> init = std::make_unique<InitImpl>();
     // mp::ServeStream<InitInterface>(loop, fd, *init);
     // loop.loop();
     return 0;

@@ -51,7 +51,7 @@ void LoggingErrorHandler::taskFailed(kj::Exception&& exception)
 EventLoopRef::EventLoopRef(EventLoop& loop, std::unique_lock<std::mutex>* lock) : m_loop(&loop), m_lock(lock)
 {
     auto loop_lock{PtrOrValue{m_lock, m_loop->m_mutex}};
-    m_loop->addClient(*loop_lock);
+    m_loop->m_num_clients += 1;
 }
 
 bool EventLoopRef::reset()
@@ -60,7 +60,18 @@ bool EventLoopRef::reset()
     if (auto* loop{m_loop}) {
         m_loop = nullptr;
         auto loop_lock{PtrOrValue{m_lock, loop->m_mutex}};
-        done = loop->removeClient(*loop_lock);
+        assert(loop->m_num_clients > 0);
+        loop->m_num_clients -= 1;
+        if (loop->done(*loop_lock)) {
+            done = true;
+            loop->m_cv.notify_all();
+            int post_fd{loop->m_post_fd};
+            loop_lock->unlock();
+            char buffer = 0;
+            KJ_SYSCALL(write(post_fd, &buffer, 1)); // NOLINT(bugprone-suspicious-semicolon)
+            // Do not try to relock `loop_lock` after writing, because the event loop
+            // could wake up and destroy itself and the mutex might no longer exist.
+        }
     }
     return done;
 }
@@ -220,7 +231,7 @@ void EventLoop::loop()
             m_cv.notify_all();
         } else if (done(lock)) {
             // Intentionally do not break if m_post_fn was set, even if done()
-            // would return true, to ensure that the removeClient write(post_fd)
+            // would return true, to ensure that the EventLoopRef write(post_fd)
             // call always succeeds and the loop does not exit between the time
             // that the done condition is set and the write call is made.
             break;
@@ -252,25 +263,6 @@ void EventLoop::post(const std::function<void()>& fn)
         KJ_SYSCALL(write(post_fd, &buffer, 1));
     });
     m_cv.wait(lock, [this, &fn] { return m_post_fn != &fn; });
-}
-
-void EventLoop::addClient(std::unique_lock<std::mutex>& lock) { m_num_clients += 1; }
-
-bool EventLoop::removeClient(std::unique_lock<std::mutex>& lock)
-{
-    assert(m_num_clients > 0);
-    m_num_clients -= 1;
-    if (done(lock)) {
-        m_cv.notify_all();
-        int post_fd{m_post_fd};
-        lock.unlock();
-        char buffer = 0;
-        KJ_SYSCALL(write(post_fd, &buffer, 1)); // NOLINT(bugprone-suspicious-semicolon)
-        // Do not try to relock `lock` after writing, because the event loop
-        // could wake up and destroy itself and the mutex might no longer exist.
-        return true;
-    }
-    return false;
 }
 
 void EventLoop::startAsyncThread(std::unique_lock<std::mutex>& lock)

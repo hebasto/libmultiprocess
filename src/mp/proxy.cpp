@@ -48,6 +48,23 @@ void LoggingErrorHandler::taskFailed(kj::Exception&& exception)
     m_loop.log() << "Uncaught exception in daemonized task.";
 }
 
+EventLoopRef::EventLoopRef(EventLoop& loop, std::unique_lock<std::mutex>* lock) : m_loop(&loop), m_lock(lock)
+{
+    auto loop_lock{PtrOrValue{m_lock, m_loop->m_mutex}};
+    m_loop->addClient(*loop_lock);
+}
+
+bool EventLoopRef::reset()
+{
+    bool done = false;
+    if (auto* loop{m_loop}) {
+        m_loop = nullptr;
+        auto loop_lock{PtrOrValue{m_lock, loop->m_mutex}};
+        done = loop->removeClient(*loop_lock);
+    }
+    return done;
+}
+
 Connection::~Connection()
 {
     // Shut down RPC system first, since this will garbage collect Server

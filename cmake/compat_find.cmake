@@ -10,7 +10,7 @@
 # https://sources.debian.org/patches/capnproto/1.0.1-4/07_libatomic.patch/ which
 # uses check_library_exists(atomic __atomic_load_8 ...) and it fails because the
 # symbol name conflicts with a compiler instrinsic as described
-# https://github.com/chaincodelabs/libmultiprocess/issues/68#issuecomment-1135150171.
+# https://github.com/bitcoin-core/libmultiprocess/issues/68#issuecomment-1135150171.
 # This could be fixed by improving the check_library_exists function as
 # described in the github comment, or by changing the debian patch to check for
 # the symbol a different way, but simplest thing to do is work around the

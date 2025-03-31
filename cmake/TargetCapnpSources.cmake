@@ -72,11 +72,12 @@ function(target_capnp_sources target include_prefix)
     message(FATAL_ERROR "No usable mpgen. Set MPGEN_EXECUTABLE or enable the internal target.")
   endif()
 
+  get_property(mp_include_dir GLOBAL PROPERTY MP_INCLUDE_DIR)
   set(generated_headers "")
   foreach(capnp_file IN LISTS TCS_UNPARSED_ARGUMENTS)
     add_custom_command(
       OUTPUT ${capnp_file}.c++ ${capnp_file}.h ${capnp_file}.proxy-client.c++ ${capnp_file}.proxy-types.h ${capnp_file}.proxy-server.c++ ${capnp_file}.proxy-types.c++ ${capnp_file}.proxy.h
-      COMMAND ${MPGEN_BINARY} ${CMAKE_CURRENT_SOURCE_DIR} ${include_prefix} ${CMAKE_CURRENT_SOURCE_DIR}/${capnp_file} ${TCS_IMPORT_PATHS} ${MP_INCLUDE_DIR}
+      COMMAND ${MPGEN_BINARY} ${CMAKE_CURRENT_SOURCE_DIR} ${include_prefix} ${CMAKE_CURRENT_SOURCE_DIR}/${capnp_file} ${TCS_IMPORT_PATHS} ${mp_include_dir}
       DEPENDS ${capnp_file}
       VERBATIM
     )
@@ -97,7 +98,7 @@ function(target_capnp_sources target include_prefix)
   if(relative_path)
     string(APPEND build_include_prefix "/" "${relative_path}")
   endif()
-  target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${build_include_prefix}> ${MP_INCLUDE_DIR})
+  target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${build_include_prefix}> ${mp_include_dir})
 
   if(TARGET Libmultiprocess::multiprocess)
     target_link_libraries(${target} PRIVATE Libmultiprocess::multiprocess)

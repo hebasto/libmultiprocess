@@ -30,16 +30,16 @@ include("cmake/compat_config.cmake")
 include("cmake/pthread_checks.cmake")
 include(GNUInstallDirs)
 
-# Set convenience variables for subdirectories.
-set(MP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+# Set MP_INCLUDE_DIR as a global property so target_capnp_sources function can
+# use it, and its callers don't need to specify the include directory manually
+# to avoid "error: Import failed: /mp/proxy.capnp" failures from capnproto.
+set_property(GLOBAL PROPERTY MP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+# Set a convenience variable for subdirectories.
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(MP_STANDALONE TRUE)
   include(CTest)
 else()
-  # Set MP_INCLUDE_DIR for parent directories too, so target_capnp_sources calls
-  # in parent directories can use it and not need to specify include directories
-  # manually or see capnproto error "error: Import failed: /mp/proxy.capnp"
-  set(MP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
   set(MP_STANDALONE FALSE)
 endif()
 

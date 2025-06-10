@@ -161,6 +161,7 @@ struct PtrOrValue {
 #define MP_RELEASE(...)         MP_TSA(release_capability(__VA_ARGS__))
 #define MP_ASSERT_CAPABILITY(x) MP_TSA(assert_capability(x))
 #define MP_GUARDED_BY(x)        MP_TSA(guarded_by(x))
+#define MP_NO_TSA               MP_TSA(no_thread_safety_analysis)
 
 class MP_CAPABILITY("mutex") Mutex {
 public:

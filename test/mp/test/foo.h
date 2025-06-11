@@ -5,6 +5,7 @@
 #ifndef MP_TEST_FOO_H
 #define MP_TEST_FOO_H
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <string>
@@ -75,6 +76,7 @@ public:
     FooMessage passMessage(FooMessage foo) { foo.message += " call"; return foo; }
     void passMutable(FooMutable& foo) { foo.message += " call"; }
     FooEnum passEnum(FooEnum foo) { return foo; }
+    int passFn(std::function<int()> fn) { return fn(); }
     std::shared_ptr<FooCallback> m_callback;
 };
 

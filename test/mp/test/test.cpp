@@ -128,6 +128,8 @@ KJ_TEST("Call FooInterface methods")
     foo->passMutable(mut);
     KJ_EXPECT(mut.message == "init build pass call return read");
 
+    KJ_EXPECT(foo->passFn([]{ return 10; }) == 10);
+
     disconnect_client();
     thread.join();
 

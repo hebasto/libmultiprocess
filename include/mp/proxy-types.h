@@ -274,7 +274,7 @@ void MaybeReadField(std::false_type, Args&&...)
 }
 
 template <typename LocalType, typename Value, typename Output>
-void MaybeSetWant(TypeList<LocalType*>, Priority<1>, Value&& value, Output&& output)
+void MaybeSetWant(TypeList<LocalType*>, Priority<1>, const Value& value, Output&& output)
 {
     if (value) {
         output.setWant();
@@ -282,7 +282,7 @@ void MaybeSetWant(TypeList<LocalType*>, Priority<1>, Value&& value, Output&& out
 }
 
 template <typename LocalTypes, typename... Args>
-void MaybeSetWant(LocalTypes, Priority<0>, Args&&...)
+void MaybeSetWant(LocalTypes, Priority<0>, const Args&...)
 {
 }
 
@@ -393,10 +393,10 @@ struct ClientParam
         void handleField(ClientInvokeContext& invoke_context, Params& params, ParamList)
         {
             auto const fun = [&]<typename... Values>(Values&&... values) {
+                MaybeSetWant(
+                    ParamList(), Priority<1>(), values..., Make<StructField, Accessor>(params));
                 MaybeBuildField(std::integral_constant<bool, Accessor::in>(), ParamList(), invoke_context,
                     Make<StructField, Accessor>(params), std::forward<Values>(values)...);
-                MaybeSetWant(
-                    ParamList(), Priority<1>(), std::forward<Values>(values)..., Make<StructField, Accessor>(params));
             };
 
             // Note: The m_values tuple just consists of lvalue and rvalue

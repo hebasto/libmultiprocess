@@ -326,18 +326,18 @@ template <typename Derived, size_t N = 0>
 struct IterateFieldsHelper
 {
     template <typename Arg1, typename Arg2, typename ParamList, typename NextFn, typename... NextFnArgs>
-    void handleChain(Arg1&& arg1, Arg2&& arg2, ParamList, NextFn&& next_fn, NextFnArgs&&... next_fn_args)
+    void handleChain(Arg1& arg1, Arg2& arg2, ParamList, NextFn&& next_fn, NextFnArgs&&... next_fn_args)
     {
         using S = Split<N, ParamList>;
-        handleChain(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), typename S::First());
-        next_fn.handleChain(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), typename S::Second(),
+        handleChain(arg1, arg2, typename S::First());
+        next_fn.handleChain(arg1, arg2, typename S::Second(),
             std::forward<NextFnArgs>(next_fn_args)...);
     }
 
     template <typename Arg1, typename Arg2, typename ParamList>
-    void handleChain(Arg1&& arg1, Arg2&& arg2, ParamList)
+    void handleChain(Arg1& arg1, Arg2& arg2, ParamList)
     {
-        static_cast<Derived*>(this)->handleField(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), ParamList());
+        static_cast<Derived*>(this)->handleField(arg1, arg2, ParamList());
     }
 private:
     IterateFieldsHelper() = default;

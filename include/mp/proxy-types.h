@@ -191,7 +191,7 @@ void ThrowField(TypeList<std::exception>, InvokeContext& invoke_context, Input&&
 }
 
 template <typename... Values>
-bool CustomHasValue(InvokeContext& invoke_context, Values&&... value)
+bool CustomHasValue(InvokeContext& invoke_context, const Values&... value)
 {
     return true;
 }
@@ -199,7 +199,7 @@ bool CustomHasValue(InvokeContext& invoke_context, Values&&... value)
 template <typename... LocalTypes, typename Context, typename... Values, typename Output>
 void BuildField(TypeList<LocalTypes...>, Context& context, Output&& output, Values&&... values)
 {
-    if (CustomHasValue(context, std::forward<Values>(values)...)) {
+    if (CustomHasValue(context, values...)) {
         CustomBuildField(TypeList<LocalTypes...>(), Priority<3>(), context, std::forward<Values>(values)...,
             std::forward<Output>(output));
     }

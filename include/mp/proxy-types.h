@@ -92,7 +92,7 @@ struct StructField
 template <typename LocalType, typename EmplaceFn>
 struct ReadDestEmplace
 {
-    ReadDestEmplace(TypeList<LocalType>, EmplaceFn&& emplace_fn) : m_emplace_fn(emplace_fn) {}
+    ReadDestEmplace(TypeList<LocalType>, EmplaceFn emplace_fn) : m_emplace_fn(std::move(emplace_fn)) {}
 
     //! Simple case. If ReadField impementation calls this construct() method
     //! with constructor arguments, just pass them on to the emplace function.
@@ -123,7 +123,7 @@ struct ReadDestEmplace
             return temp;
         }
     }
-    EmplaceFn& m_emplace_fn;
+    EmplaceFn m_emplace_fn;
 };
 
 //! Helper function to create a ReadDestEmplace object that constructs a
@@ -131,7 +131,7 @@ struct ReadDestEmplace
 template <typename LocalType>
 auto ReadDestTemp()
 {
-    return ReadDestEmplace{TypeList<LocalType>(), [&](auto&&... args) -> decltype(auto) {
+    return ReadDestEmplace{TypeList<LocalType>(), [](auto&&... args) -> decltype(auto) {
         return LocalType{std::forward<decltype(args)>(args)...};
     }};
 }

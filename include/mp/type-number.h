@@ -50,7 +50,7 @@ decltype(auto) CustomReadField(TypeList<LocalType>,
     InvokeContext& invoke_context,
     Input&& input,
     ReadDest&& read_dest,
-    typename std::enable_if<std::is_enum<LocalType>::value>::type* enable = 0)
+    typename std::enable_if<std::is_enum<LocalType>::value>::type* enable = nullptr)
 {
     return read_dest.construct(static_cast<LocalType>(input.get()));
 }

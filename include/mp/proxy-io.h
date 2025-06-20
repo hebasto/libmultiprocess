@@ -13,6 +13,7 @@
 #include <capnp/rpc-twoparty.h>
 
 #include <assert.h>
+#include <condition_variable>
 #include <functional>
 #include <kj/function.h>
 #include <map>
@@ -20,6 +21,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <thread>
 
 namespace mp {
 struct ThreadContext;

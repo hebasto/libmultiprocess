@@ -10,24 +10,23 @@
 #include <mp/type-threadmap.h>
 #include <mp/util.h>
 
-#include <assert.h>
 #include <atomic>
-#include <capnp/blob.h>
 #include <capnp/capability.h>
+#include <capnp/rpc.h>
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include <kj/async-io.h>
 #include <kj/async.h>
+#include <kj/async-io.h>
+#include <kj/async-prelude.h>
 #include <kj/common.h>
 #include <kj/debug.h>
-#include <kj/exception.h>
 #include <kj/function.h>
 #include <kj/memory.h>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <stddef.h>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <sys/socket.h>
@@ -37,9 +36,6 @@
 #include <utility>
 
 namespace mp {
-
-template <typename Interface>
-struct ProxyServer;
 
 thread_local ThreadContext g_thread_context;
 

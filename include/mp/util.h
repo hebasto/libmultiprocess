@@ -8,14 +8,10 @@
 #include <capnp/schema.h>
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <functional>
-#include <future>
-#include <kj/common.h>
-#include <kj/exception.h>
 #include <kj/string-tree.h>
-#include <memory>
 #include <mutex>
-#include <string.h>
 #include <string>
 #include <tuple>
 #include <type_traits>

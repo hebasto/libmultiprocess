@@ -26,6 +26,7 @@ performance-*,
 readability-const-return-type,
 readability-redundant-declaration,
 readability-redundant-string-init,
+clang-analyzer-core.StackAddressEscape,
 '
 HeaderFilterRegex: '.'
 WarningsAsErrors: '*'

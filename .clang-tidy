@@ -26,8 +26,9 @@ performance-*,
 readability-const-return-type,
 readability-redundant-declaration,
 readability-redundant-string-init,
-clang-analyzer-core.StackAddressEscape,
-clang-analyzer-optin.core.EnumCastOutOfRange,
+clang-analyzer-core.*,
+-clang-analyzer-core.UndefinedBinaryOperatorResult,
+clang-analyzer-optin.core.*,
 '
 HeaderFilterRegex: '.'
 WarningsAsErrors: '*'

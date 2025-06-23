@@ -1,5 +1,9 @@
-CI_DESC="CI job using LLVM-based tools (clang, clang-tidy, iwyu) and testing Ninja"
+CI_DESC="CI job using LLVM-based libraries and tools (clang, libc++, clang-tidy, iwyu) and testing Ninja"
 CI_DIR=build-llvm
+NIX_ARGS=(
+  --arg enableLibcxx true
+)
+
 CMAKE_ARGS=(
   -G Ninja
   -DCMAKE_CXX_COMPILER=clang++

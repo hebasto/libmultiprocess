@@ -1,5 +1,6 @@
-CI_DESC="CI job using LLVM-based tools (clang, clang-tidy, iwyu) and testing Ninja"
+CI_DESC="CI job using LLVM-based libraries and tools (clang, libc++, clang-tidy, iwyu) and testing Ninja"
 CI_DIR=build-llvm
+NIX_ARGS=(--arg enableLibcxx true)
 export CXX=clang++
 export CXXFLAGS="-Werror -Wall -Wextra -Wpedantic -Wthread-safety-analysis -Wno-unused-parameter"
 CMAKE_ARGS=(

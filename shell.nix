@@ -11,6 +11,7 @@ in mkShell {
   buildInputs = [
     capnproto
     llvm.libcxx
+    llvm.libcxxabi
   ];
   nativeBuildInputs = with pkgs; [
     cmake

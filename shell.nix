@@ -1,24 +1,26 @@
 { pkgs ? import <nixpkgs> {}
+, crossPkgs ? import <nixpkgs> {}
 , enableLibcxx ? false # Whether to use libc++ toolchain and libraries instead of libstdc++
+, minimal ? false # Whether to create minimal shell without extra tools (faster when cross compiling)
 }:
 
 let
   lib  = pkgs.lib;
-  llvm = pkgs.llvmPackages_20;
-  capnproto = pkgs.capnproto.override (lib.optionalAttrs enableLibcxx { clangStdenv = llvm.libcxxStdenv; });
+  llvm = crossPkgs.llvmPackages_20;
+  capnproto = crossPkgs.capnproto.override (lib.optionalAttrs enableLibcxx { clangStdenv = llvm.libcxxStdenv; });
   clang = if enableLibcxx then llvm.libcxxClang else llvm.clang;
   clang-tools = llvm.clang-tools.override { inherit enableLibcxx; };
-in pkgs.mkShell {
+in crossPkgs.mkShell {
   buildInputs = [
     capnproto
-    llvm.libcxx
   ];
   nativeBuildInputs = with pkgs; [
-    clang
-    clang-tools
     cmake
     include-what-you-use
     ninja
+  ] ++ lib.optionals (!minimal) [
+    clang
+    clang-tools
   ];
 
   # Tell IWYU where its libc++ mapping lives

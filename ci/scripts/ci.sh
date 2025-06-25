@@ -9,4 +9,8 @@ set -o errexit -o nounset -o pipefail -o xtrace
 
 cmake -B "$CI_DIR" "${CMAKE_ARGS[@]+"${CMAKE_ARGS[@]}"}"
 cmake --build "$CI_DIR" -t all tests mpexamples -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
+
+file "${CI_DIR}/test/mptest"
+ldd "${CI_DIR}/test/mptest"
+
 ctest --test-dir "$CI_DIR" --output-on-failure

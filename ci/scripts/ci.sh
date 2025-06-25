@@ -15,6 +15,8 @@ if command -v clang-tidy >/dev/null 2>&1; then
   clang-tidy --version
 fi
 
+export LDFLAGS="-lc++ -lc++abi"
+
 cmake -B "$CI_DIR" "${CMAKE_ARGS[@]+"${CMAKE_ARGS[@]}"}" || cat "${CI_DIR}/CMakeFiles/CMakeConfigureLog.yaml"
 cmake --build "$CI_DIR" -t all tests mpexamples -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
 ctest --test-dir "$CI_DIR" --output-on-failure

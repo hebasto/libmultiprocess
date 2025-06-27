@@ -25,5 +25,5 @@ jobs:
 
       - name: Run CI script
         env:
-          CI_CONFIG: ci/configs/${{ matrix.config }}.sh
+          CI_CONFIG: ci/configs/${{ matrix.config }}.bash
         run: ci/scripts/run.sh

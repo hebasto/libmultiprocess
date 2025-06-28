@@ -268,12 +268,12 @@ KJ_TEST("Calling IPC method, disconnecting and blocking during the call")
     // ProxyServer objects associated with the connection. Having an in-progress
     // RPC call requires keeping the ProxyServer longer.
 
+    std::promise<void> signal;
     TestSetup setup{/*client_owns_connection=*/false};
     ProxyClient<messages::FooInterface>* foo = setup.client.get();
     KJ_EXPECT(foo->add(1, 2) == 3);
 
     foo->initThreadMap();
-    std::promise<void> signal;
     setup.server->m_impl->m_fn = [&] {
         EventLoopRef loop{*setup.server->m_context.loop};
         setup.client_disconnect();
@@ -289,6 +289,11 @@ KJ_TEST("Calling IPC method, disconnecting and blocking during the call")
     }
     KJ_EXPECT(disconnected);
 
+    // Now that the disconnect has been detected, set signal allowing the
+    // callFnAsync() IPC call to return. Since signalling may not wake up the
+    // thread right away, it is important for the signal variable to be declared
+    // *before* the TestSetup variable so is not destroyed while
+    // signal.get_future().get() is called.
     signal.set_value();
 }
 

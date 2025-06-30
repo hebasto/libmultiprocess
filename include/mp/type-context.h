@@ -69,7 +69,6 @@ auto PassField(Priority<1>, TypeList<>, ServerContext& server_context, const Fn&
                 const auto& params = call_context.getParams();
                 Context::Reader context_arg = Accessor::get(params);
                 ServerContext server_context{server, call_context, req};
-                bool disconnected{false};
                 {
                     // Before invoking the function, store a reference to the
                     // callbackThread provided by the client in the
@@ -101,7 +100,7 @@ auto PassField(Priority<1>, TypeList<>, ServerContext& server_context, const Fn&
                     // recursive call (IPC call calling back to the caller which
                     // makes another IPC call), so avoid modifying the map.
                     const bool erase_thread{inserted};
-                    KJ_DEFER({
+                    KJ_DEFER(if (erase_thread) {
                         std::unique_lock<std::mutex> lock(thread_context.waiter->m_mutex);
                         // Call erase here with a Connection* argument instead
                         // of an iterator argument, because the `request_thread`
@@ -112,23 +111,9 @@ auto PassField(Priority<1>, TypeList<>, ServerContext& server_context, const Fn&
                         // erases the thread from the map, and also because the
                         // ProxyServer<Thread> destructor calls
                         // request_threads.clear().
-                        if (erase_thread) {
-                            disconnected = !request_threads.erase(server.m_context.connection);
-                        } else {
-                            disconnected = !request_threads.count(server.m_context.connection);
-                        }
+                        request_threads.erase(server.m_context.connection);
                     });
                     fn.invoke(server_context, args...);
-                }
-                if (disconnected) {
-                    // If disconnected is true, the Connection object was
-                    // destroyed during the method call. Deal with this by
-                    // returning without ever fulfilling the promise, which will
-                    // cause the ProxyServer object to leak. This is not ideal,
-                    // but fixing the leak will require nontrivial code changes
-                    // because there is a lot of code assuming ProxyServer
-                    // objects are destroyed before Connection objects.
-                    return;
                 }
                 KJ_IF_MAYBE(exception, kj::runCatchingExceptions([&]() {
                     server.m_context.loop->sync([&] {

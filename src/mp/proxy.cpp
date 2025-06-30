@@ -321,7 +321,7 @@ std::tuple<ConnThread, bool> SetThread(ConnThreads& threads, std::mutex& mutex, 
 
         // Connection is being destroyed before thread client is, so reset
         // thread client m_disconnect_cb member so thread client destructor does not
-        // try unregister this callback after connection is destroyed.
+        // try to unregister this callback after connection is destroyed.
         // Remove connection pointer about to be destroyed from the map
         const std::unique_lock<std::mutex> lock(mutex);
         thread->second.m_disconnect_cb.reset();

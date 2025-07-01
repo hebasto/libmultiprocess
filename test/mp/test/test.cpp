@@ -49,12 +49,14 @@ namespace test {
 class TestSetup
 {
 public:
-    std::thread thread;
     std::function<void()> server_disconnect;
     std::function<void()> client_disconnect;
     std::promise<std::unique_ptr<ProxyClient<messages::FooInterface>>> client_promise;
     std::unique_ptr<ProxyClient<messages::FooInterface>> client;
     ProxyServer<messages::FooInterface>* server{nullptr};
+    //! Thread variable should be after other struct members so the thread does
+    //! not start until the other members are initialized.
+    std::thread thread;
 
     TestSetup(bool client_owns_connection = true)
         : thread{[&] {
@@ -266,12 +268,12 @@ KJ_TEST("Calling IPC method, disconnecting and blocking during the call")
     // ProxyServer objects associated with the connection. Having an in-progress
     // RPC call requires keeping the ProxyServer longer.
 
+    std::promise<void> signal;
     TestSetup setup{/*client_owns_connection=*/false};
     ProxyClient<messages::FooInterface>* foo = setup.client.get();
     KJ_EXPECT(foo->add(1, 2) == 3);
 
     foo->initThreadMap();
-    std::promise<void> signal;
     setup.server->m_impl->m_fn = [&] {
         EventLoopRef loop{*setup.server->m_context.loop};
         setup.client_disconnect();
@@ -287,6 +289,11 @@ KJ_TEST("Calling IPC method, disconnecting and blocking during the call")
     }
     KJ_EXPECT(disconnected);
 
+    // Now that the disconnect has been detected, set signal allowing the
+    // callFnAsync() IPC call to return. Since signalling may not wake up the
+    // thread right away, it is important for the signal variable to be declared
+    // *before* the TestSetup variable so is not destroyed while
+    // signal.get_future().get() is called.
     signal.set_value();
 }
 

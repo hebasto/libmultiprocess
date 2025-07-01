@@ -609,42 +609,44 @@ void clientInvoke(ProxyClient& proxy_client, const GetRequest& get_request, Fiel
             << "{" << g_thread_context.thread_name
             << "} IPC client first request from current thread, constructing waiter";
     }
-    ClientInvokeContext invoke_context{*proxy_client.m_context.connection, g_thread_context};
+    ThreadContext& thread_context{g_thread_context};
+    std::optional<ClientInvokeContext> invoke_context; // Must outlive waiter->wait() call below
     std::exception_ptr exception;
     std::string kj_exception;
     bool done = false;
     const char* disconnected = nullptr;
     proxy_client.m_context.loop->sync([&]() {
         if (!proxy_client.m_context.connection) {
-            const std::unique_lock<std::mutex> lock(invoke_context.thread_context.waiter->m_mutex);
+            const std::unique_lock<std::mutex> lock(thread_context.waiter->m_mutex);
             done = true;
             disconnected = "IPC client method called after disconnect.";
-            invoke_context.thread_context.waiter->m_cv.notify_all();
+            thread_context.waiter->m_cv.notify_all();
             return;
         }
 
         auto request = (proxy_client.m_client.*get_request)(nullptr);
         using Request = CapRequestTraits<decltype(request)>;
         using FieldList = typename ProxyClientMethodTraits<typename Request::Params>::Fields;
-        IterateFields().handleChain(invoke_context, request, FieldList(), typename FieldObjs::BuildParams{&fields}...);
+        invoke_context.emplace(*proxy_client.m_context.connection, thread_context);
+        IterateFields().handleChain(*invoke_context, request, FieldList(), typename FieldObjs::BuildParams{&fields}...);
         proxy_client.m_context.loop->logPlain()
-            << "{" << invoke_context.thread_context.thread_name << "} IPC client send "
+            << "{" << thread_context.thread_name << "} IPC client send "
             << TypeName<typename Request::Params>() << " " << LogEscape(request.toString());
 
         proxy_client.m_context.loop->m_task_set->add(request.send().then(
             [&](::capnp::Response<typename Request::Results>&& response) {
                 proxy_client.m_context.loop->logPlain()
-                    << "{" << invoke_context.thread_context.thread_name << "} IPC client recv "
+                    << "{" << thread_context.thread_name << "} IPC client recv "
                     << TypeName<typename Request::Results>() << " " << LogEscape(response.toString());
                 try {
                     IterateFields().handleChain(
-                        invoke_context, response, FieldList(), typename FieldObjs::ReadResults{&fields}...);
+                        *invoke_context, response, FieldList(), typename FieldObjs::ReadResults{&fields}...);
                 } catch (...) {
                     exception = std::current_exception();
                 }
-                const std::unique_lock<std::mutex> lock(invoke_context.thread_context.waiter->m_mutex);
+                const std::unique_lock<std::mutex> lock(thread_context.waiter->m_mutex);
                 done = true;
-                invoke_context.thread_context.waiter->m_cv.notify_all();
+                thread_context.waiter->m_cv.notify_all();
             },
             [&](const ::kj::Exception& e) {
                 if (e.getType() == ::kj::Exception::Type::DISCONNECTED) {
@@ -652,16 +654,16 @@ void clientInvoke(ProxyClient& proxy_client, const GetRequest& get_request, Fiel
                 } else {
                     kj_exception = kj::str("kj::Exception: ", e).cStr();
                     proxy_client.m_context.loop->logPlain()
-                        << "{" << invoke_context.thread_context.thread_name << "} IPC client exception " << kj_exception;
+                        << "{" << thread_context.thread_name << "} IPC client exception " << kj_exception;
                 }
-                const std::unique_lock<std::mutex> lock(invoke_context.thread_context.waiter->m_mutex);
+                const std::unique_lock<std::mutex> lock(thread_context.waiter->m_mutex);
                 done = true;
-                invoke_context.thread_context.waiter->m_cv.notify_all();
+                thread_context.waiter->m_cv.notify_all();
             }));
     });
 
-    std::unique_lock<std::mutex> lock(invoke_context.thread_context.waiter->m_mutex);
-    invoke_context.thread_context.waiter->wait(lock, [&done]() { return done; });
+    std::unique_lock<std::mutex> lock(thread_context.waiter->m_mutex);
+    thread_context.waiter->wait(lock, [&done]() { return done; });
     if (exception) std::rethrow_exception(exception);
     if (!kj_exception.empty()) proxy_client.m_context.loop->raise() << kj_exception;
     if (disconnected) proxy_client.m_context.loop->raise() << disconnected;

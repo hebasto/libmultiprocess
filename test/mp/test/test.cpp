@@ -264,7 +264,7 @@ KJ_TEST("Calling IPC method, disconnecting and blocking during the call")
     // This test adds important coverage because it causes the server Connection
     // object to be destroyed before ProxyServer object, which is not a
     // condition that usually happens because the m_rpc_system.reset() call in
-    // the ~Connection destructor usually would immediately free all remaing
+    // the ~Connection destructor usually would immediately free all remaining
     // ProxyServer objects associated with the connection. Having an in-progress
     // RPC call requires keeping the ProxyServer longer.
 

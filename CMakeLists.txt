@@ -12,7 +12,7 @@ endif()
 
 include("cmake/compat_find.cmake")
 
-find_package(CapnProto REQUIRED)
+find_package(CapnProto 0.7.0 REQUIRED)
 find_package(Threads REQUIRED)
 
 set(MPGEN_EXECUTABLE "" CACHE FILEPATH "If specified, should be full path to an external mpgen binary to use rather than the one built internally.")

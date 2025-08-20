@@ -5,6 +5,34 @@ on:
   pull_request:
 
 jobs:
+  build-openbsd:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: openbsd {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start OpenBSD VM
+        uses: vmactions/openbsd-vm@v1
+        with:
+          prepare: |
+            pkg_add -v cmake ninja git python bash
+          run: |
+            git clone --depth=1 https://codeberg.org/OpenBSD/ports.git /usr/ports
+          sync: 'rsync'
+          copyback: false
+
+      - name: Install capnproto
+        run: |
+          cd /usr/ports/devel/capnproto/
+          make install
+
+      - name: Run CI script
+        run: |
+          cd ${{ github.workspace }}
+          CI_CONFIG="ci/configs/openbsd.bash" bash ci/scripts/ci.sh
+
   build:
     runs-on: ubuntu-latest
 

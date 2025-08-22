@@ -7,11 +7,12 @@ on:
 jobs:
   build-openbsd:
     runs-on: ubuntu-latest
+    name: build • openbsd
     defaults:
       run:
         shell: openbsd {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Start OpenBSD VM
         uses: vmactions/openbsd-vm@v1
@@ -44,7 +45,7 @@ jobs:
     name: build • ${{ matrix.config }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31       # 2025-05-27, from https://github.com/cachix/install-nix-action/tags

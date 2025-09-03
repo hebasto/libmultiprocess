@@ -13,7 +13,7 @@ endif()
 include("cmake/compat_find.cmake")
 
 find_package(Threads REQUIRED)
-find_package(CapnProto 0.7 REQUIRED)
+find_package(CapnProto 0.7 REQUIRED NO_MODULE)
 
 # Check for list-of-pointers memory access bug from Nov 2022
 # https://nvd.nist.gov/vuln/detail/CVE-2022-46149

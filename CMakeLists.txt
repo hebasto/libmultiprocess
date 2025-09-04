@@ -13,7 +13,15 @@ endif()
 include("cmake/compat_find.cmake")
 
 find_package(Threads REQUIRED)
-find_package(CapnProto 0.7 REQUIRED NO_MODULE)
+find_package(CapnProto 0.7 QUIET NO_MODULE)
+ if(NOT CapnProto_FOUND)
+   message(FATAL_ERROR
+     "Cap'n Proto is required but was not found.\n"
+     "To resolve, choose one of the following:\n"
+     "  - Install Cap'n Proto (version 1.0+ recommended)\n"
+     "  - For Bitcoin Core compilation build with -DENABLE_IPC=OFF to disable multiprocess support\n"
+   )
+ endif()
 
 # Cap'n Proto compatibility checks
 set(CAPNPROTO_ISSUES "")

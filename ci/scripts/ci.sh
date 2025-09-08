@@ -17,6 +17,8 @@ fi
 
 [ -n "${CI_CLEAN-}" ] && rm -rf "${CI_DIR}"
 
+cmake --version
+
 cmake -B "$CI_DIR" "${CMAKE_ARGS[@]+"${CMAKE_ARGS[@]}"}"
 cmake --build "$CI_DIR" -t "${BUILD_TARGETS[@]}" -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
 ctest --test-dir "$CI_DIR" --output-on-failure

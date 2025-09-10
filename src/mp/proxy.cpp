@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <capnp/capability.h>
+#include <capnp/common.h> // IWYU pragma: keep
 #include <capnp/rpc.h>
 #include <condition_variable>
 #include <functional>
@@ -80,6 +81,11 @@ ProxyContext::ProxyContext(Connection* connection) : connection(connection), loo
 
 Connection::~Connection()
 {
+    // Connection destructor is always called on the event loop thread. If this
+    // is a local disconnect, it will trigger I/O, so this needs to run on the
+    // event loop thread, and if there was a remote disconnect, this is called
+    // by an onDisconnect callback directly from the event loop thread.
+    assert(std::this_thread::get_id() == m_loop->m_thread_id);
     // Shut down RPC system first, since this will garbage collect any
     // ProxyServer objects that were not freed before the connection was closed.
     // Typically all ProxyServer objects associated with this connection will be
@@ -155,6 +161,9 @@ CleanupIt Connection::addSyncCleanup(std::function<void()> fn)
 
 void Connection::removeSyncCleanup(CleanupIt it)
 {
+    // Require cleanup functions to be removed on the event loop thread to avoid
+    // needing to deal with them being removed in the middle of a disconnect.
+    assert(std::this_thread::get_id() == m_loop->m_thread_id);
     const Lock lock(m_loop->m_mutex);
     m_sync_cleanup_fns.erase(it);
 }
@@ -306,6 +315,7 @@ bool EventLoop::done() const
 
 std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connection* connection, const std::function<Thread::Client()>& make_thread)
 {
+    assert(std::this_thread::get_id() == connection->m_loop->m_thread_id);
     ConnThread thread;
     bool inserted;
     {
@@ -314,7 +324,7 @@ std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connecti
     }
     if (inserted) {
         thread->second.emplace(make_thread(), connection, /* destroy_connection= */ false);
-        thread->second->setDisconnectCallback([threads, thread] {
+        thread->second->m_disconnect_cb = connection->addSyncCleanup([threads, thread] {
             // Note: it is safe to use the `thread` iterator in this cleanup
             // function, because the iterator would only be invalid if the map entry
             // was removed, and if the map entry is removed the ProxyClient<Thread>
@@ -323,9 +333,10 @@ std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connecti
             // Connection is being destroyed before thread client is, so reset
             // thread client m_disconnect_cb member so thread client destructor does not
             // try to unregister this callback after connection is destroyed.
+            thread->second->m_disconnect_cb.reset();
+
             // Remove connection pointer about to be destroyed from the map
             const Lock lock(threads.mutex);
-            thread->second->m_disconnect_cb.reset();
             threads.ref.erase(thread);
         });
     }
@@ -338,15 +349,16 @@ ProxyClient<Thread>::~ProxyClient()
     // cleanup callback that was registered to handle the connection being
     // destroyed before the thread being destroyed.
     if (m_disconnect_cb) {
-        m_context.connection->removeSyncCleanup(*m_disconnect_cb);
+        // Remove disconnect callback on the event loop thread with
+        // loop->sync(), so if the connection is broken there is not a race
+        // between this thread trying to remove the callback and the disconnect
+        // handler attempting to call it.
+        m_context.loop->sync([&]() {
+            if (m_disconnect_cb) {
+                m_context.connection->removeSyncCleanup(*m_disconnect_cb);
+            }
+        });
     }
-}
-
-void ProxyClient<Thread>::setDisconnectCallback(const std::function<void()>& fn)
-{
-    assert(fn);
-    assert(!m_disconnect_cb);
-    m_disconnect_cb = m_context.connection->addSyncCleanup(fn);
 }
 
 ProxyServer<Thread>::ProxyServer(ThreadContext& thread_context, std::thread&& thread)

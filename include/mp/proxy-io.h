@@ -66,8 +66,6 @@ struct ProxyClient<Thread> : public ProxyClientBase<Thread, ::capnp::Void>
     ProxyClient(const ProxyClient&) = delete;
     ~ProxyClient();
 
-    void setDisconnectCallback(const std::function<void()>& fn);
-
     //! Reference to callback function that is run if there is a sudden
     //! disconnect and the Connection object is destroyed before this
     //! ProxyClient<Thread> object. The callback will destroy this object and

@@ -275,16 +275,16 @@ struct Waiter
     template <typename Fn>
     void post(Fn&& fn)
     {
-        const std::unique_lock<std::mutex> lock(m_mutex);
+        const Lock lock(m_mutex);
         assert(!m_fn);
         m_fn = std::forward<Fn>(fn);
         m_cv.notify_all();
     }
 
     template <class Predicate>
-    void wait(std::unique_lock<std::mutex>& lock, Predicate pred)
+    void wait(Lock& lock, Predicate pred)
     {
-        m_cv.wait(lock, [&] {
+        m_cv.wait(lock.m_lock, [&]() MP_REQUIRES(m_mutex) {
             // Important for this to be "while (m_fn)", not "if (m_fn)" to avoid
             // a lost-wakeup bug. A new m_fn and m_cv notification might be sent
             // after the fn() call and before the lock.lock() call in this loop
@@ -307,9 +307,9 @@ struct Waiter
     //! mutexes than necessary. This mutex can be held at the same time as
     //! EventLoop::m_mutex as long as Waiter::mutex is locked first and
     //! EventLoop::m_mutex is locked second.
-    std::mutex m_mutex;
+    Mutex m_mutex;
     std::condition_variable m_cv;
-    std::optional<kj::Function<void()>> m_fn;
+    std::optional<kj::Function<void()>> m_fn MP_GUARDED_BY(m_mutex);
 };
 
 //! Object holding network & rpc state associated with either an incoming server
@@ -540,7 +540,7 @@ using ConnThread = ConnThreads::iterator;
 // Retrieve ProxyClient<Thread> object associated with this connection from a
 // map, or create a new one and insert it into the map. Return map iterator and
 // inserted bool.
-std::tuple<ConnThread, bool> SetThread(ConnThreads& threads, std::mutex& mutex, Connection* connection, const std::function<Thread::Client()>& make_thread);
+std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connection* connection, const std::function<Thread::Client()>& make_thread);
 
 struct ThreadContext
 {
@@ -556,7 +556,7 @@ struct ThreadContext
     //! `callbackThread` argument it passes in the request, used by the server
     //! in case it needs to make callbacks into the client that need to execute
     //! while the client is waiting. This will be set to a local thread object.
-    ConnThreads callback_threads;
+    ConnThreads callback_threads MP_GUARDED_BY(waiter->m_mutex);
 
     //! When client is making a request to a server, this is the `thread`
     //! argument it passes in the request, used to control which thread on
@@ -565,7 +565,7 @@ struct ThreadContext
     //! by makeThread. If a client call is being made from a thread currently
     //! handling a server request, this will be set to the `callbackThread`
     //! request thread argument passed in that request.
-    ConnThreads request_threads;
+    ConnThreads request_threads MP_GUARDED_BY(waiter->m_mutex);
 
     //! Whether this thread is a capnp event loop thread. Not really used except
     //! to assert false if there's an attempt to execute a blocking operation

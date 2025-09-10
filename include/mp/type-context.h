@@ -25,7 +25,7 @@ void CustomBuildField(TypeList<>,
     // Also store the Thread::Client reference in the callback_threads map so
     // future calls over this connection can reuse it.
     auto [callback_thread, _]{SetThread(
-        thread_context.callback_threads, thread_context.waiter->m_mutex, &connection,
+        GuardedRef{thread_context.waiter->m_mutex, thread_context.callback_threads}, &connection,
         [&] { return connection.m_threads.add(kj::heap<ProxyServer<Thread>>(thread_context, std::thread{})); })};
 
     // Call remote ThreadMap.makeThread function so server will create a
@@ -43,7 +43,7 @@ void CustomBuildField(TypeList<>,
         return request.send().getResult(); // Nonblocking due to capnp request pipelining.
     }};
     auto [request_thread, _1]{SetThread(
-        thread_context.request_threads, thread_context.waiter->m_mutex,
+        GuardedRef{thread_context.waiter->m_mutex, thread_context.request_threads},
         &connection, make_request_thread)};
 
     auto context = output.init();
@@ -90,7 +90,7 @@ auto PassField(Priority<1>, TypeList<>, ServerContext& server_context, const Fn&
                     auto& thread_context = g_thread_context;
                     auto& request_threads = thread_context.request_threads;
                     auto [request_thread, inserted]{SetThread(
-                        request_threads, thread_context.waiter->m_mutex,
+                        GuardedRef{thread_context.waiter->m_mutex, request_threads},
                         server.m_context.connection,
                         [&] { return context_arg.getCallbackThread(); })};
 
@@ -101,7 +101,7 @@ auto PassField(Priority<1>, TypeList<>, ServerContext& server_context, const Fn&
                     // makes another IPC call), so avoid modifying the map.
                     const bool erase_thread{inserted};
                     KJ_DEFER(if (erase_thread) {
-                        std::unique_lock<std::mutex> lock(thread_context.waiter->m_mutex);
+                        Lock lock(thread_context.waiter->m_mutex);
                         // Call erase here with a Connection* argument instead
                         // of an iterator argument, because the `request_thread`
                         // iterator may be invalid if the connection is closed

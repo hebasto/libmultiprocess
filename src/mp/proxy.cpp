@@ -25,7 +25,6 @@
 #include <kj/memory.h>
 #include <map>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -305,15 +304,15 @@ bool EventLoop::done() const
     return m_num_clients == 0 && m_async_fns->empty();
 }
 
-std::tuple<ConnThread, bool> SetThread(ConnThreads& threads, std::mutex& mutex, Connection* connection, const std::function<Thread::Client()>& make_thread)
+std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connection* connection, const std::function<Thread::Client()>& make_thread)
 {
-    const std::unique_lock<std::mutex> lock(mutex);
-    auto thread = threads.find(connection);
-    if (thread != threads.end()) return {thread, false};
-    thread = threads.emplace(
+    const Lock lock(threads.mutex);
+    auto thread = threads.ref.find(connection);
+    if (thread != threads.ref.end()) return {thread, false};
+    thread = threads.ref.emplace(
         std::piecewise_construct, std::forward_as_tuple(connection),
         std::forward_as_tuple(make_thread(), connection, /* destroy_connection= */ false)).first;
-    thread->second.setDisconnectCallback([&threads, &mutex, thread] {
+    thread->second.setDisconnectCallback([threads, thread] {
         // Note: it is safe to use the `thread` iterator in this cleanup
         // function, because the iterator would only be invalid if the map entry
         // was removed, and if the map entry is removed the ProxyClient<Thread>
@@ -323,9 +322,9 @@ std::tuple<ConnThread, bool> SetThread(ConnThreads& threads, std::mutex& mutex, 
         // thread client m_disconnect_cb member so thread client destructor does not
         // try to unregister this callback after connection is destroyed.
         // Remove connection pointer about to be destroyed from the map
-        const std::unique_lock<std::mutex> lock(mutex);
+        const Lock lock(threads.mutex);
         thread->second.m_disconnect_cb.reset();
-        threads.erase(thread);
+        threads.ref.erase(thread);
     });
     return {thread, true};
 }
@@ -364,7 +363,7 @@ ProxyServer<Thread>::~ProxyServer()
     assert(m_thread_context.waiter.get());
     std::unique_ptr<Waiter> waiter;
     {
-        const std::unique_lock<std::mutex> lock(m_thread_context.waiter->m_mutex);
+        const Lock lock(m_thread_context.waiter->m_mutex);
         //! Reset thread context waiter pointer, as shutdown signal for done
         //! lambda passed as waiter->wait() argument in makeThread code below.
         waiter = std::move(m_thread_context.waiter);
@@ -398,7 +397,7 @@ kj::Promise<void> ProxyServer<ThreadMap>::makeThread(MakeThreadContext context)
         g_thread_context.thread_name = ThreadName(m_connection.m_loop->m_exe_name) + " (from " + from + ")";
         g_thread_context.waiter = std::make_unique<Waiter>();
         thread_context.set_value(&g_thread_context);
-        std::unique_lock<std::mutex> lock(g_thread_context.waiter->m_mutex);
+        Lock lock(g_thread_context.waiter->m_mutex);
         // Wait for shutdown signal from ProxyServer<Thread> destructor (signal
         // is just waiter getting set to null.)
         g_thread_context.waiter->wait(lock, [] { return !g_thread_context.waiter; });

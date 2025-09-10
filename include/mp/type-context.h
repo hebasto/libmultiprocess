@@ -47,8 +47,8 @@ void CustomBuildField(TypeList<>,
         &connection, make_request_thread)};
 
     auto context = output.init();
-    context.setThread(request_thread->second.m_client);
-    context.setCallbackThread(callback_thread->second.m_client);
+    context.setThread(request_thread->second->m_client);
+    context.setCallbackThread(callback_thread->second->m_client);
 }
 
 //! PassField override for mp.Context arguments. Return asynchronously and call

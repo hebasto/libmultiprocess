@@ -306,29 +306,30 @@ bool EventLoop::done() const
 
 std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connection* connection, const std::function<Thread::Client()>& make_thread)
 {
-    const Lock lock(threads.mutex);
-    auto thread = threads.ref.find(connection);
-    if (thread != threads.ref.end()) return {thread, false};
-    thread = threads.ref.emplace(
-        std::piecewise_construct, std::forward_as_tuple(connection),
-        std::forward_as_tuple()
-    ).first;
-    thread->second.emplace(make_thread(), connection, /* destroy_connection= */ false);
-    thread->second->setDisconnectCallback([threads, thread] {
-        // Note: it is safe to use the `thread` iterator in this cleanup
-        // function, because the iterator would only be invalid if the map entry
-        // was removed, and if the map entry is removed the ProxyClient<Thread>
-        // destructor unregisters the cleanup.
-
-        // Connection is being destroyed before thread client is, so reset
-        // thread client m_disconnect_cb member so thread client destructor does not
-        // try to unregister this callback after connection is destroyed.
-        // Remove connection pointer about to be destroyed from the map
+    ConnThread thread;
+    bool inserted;
+    {
         const Lock lock(threads.mutex);
-        thread->second->m_disconnect_cb.reset();
-        threads.ref.erase(thread);
-    });
-    return {thread, true};
+        std::tie(thread, inserted) = threads.ref.try_emplace(connection);
+    }
+    if (inserted) {
+        thread->second.emplace(make_thread(), connection, /* destroy_connection= */ false);
+        thread->second->setDisconnectCallback([threads, thread] {
+            // Note: it is safe to use the `thread` iterator in this cleanup
+            // function, because the iterator would only be invalid if the map entry
+            // was removed, and if the map entry is removed the ProxyClient<Thread>
+            // destructor unregisters the cleanup.
+
+            // Connection is being destroyed before thread client is, so reset
+            // thread client m_disconnect_cb member so thread client destructor does not
+            // try to unregister this callback after connection is destroyed.
+            // Remove connection pointer about to be destroyed from the map
+            const Lock lock(threads.mutex);
+            thread->second->m_disconnect_cb.reset();
+            threads.ref.erase(thread);
+        });
+    }
+    return {thread, inserted};
 }
 
 ProxyClient<Thread>::~ProxyClient()

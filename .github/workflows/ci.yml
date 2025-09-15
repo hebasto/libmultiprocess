@@ -19,6 +19,7 @@ jobs:
         with:
           prepare: |
             pkg install -y cmake ninja bash capnproto git
+          run: git config --global --add safe.directory ${{ github.workspace }}
           sync: 'rsync'
           copyback: false
 

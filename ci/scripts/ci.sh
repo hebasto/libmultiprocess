@@ -52,12 +52,12 @@ if ! cmake "$src_dir" "${cmake_args[@]}"; then
   false
 fi
 if ver_ge "$cmake_ver" "3.15"; then
-  cmake --build . --parallel -t "${BUILD_TARGETS[@]}" -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
+  cmake --build . -t "${BUILD_TARGETS[@]}" -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
 else
   # Older versions of cmake can only build one target at a time with --target,
   # and do not support -t shortcut
   for t in "${BUILD_TARGETS[@]}"; do
-    cmake --build . --parallel --target "$t" -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
+    cmake --build . --target "$t" -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
   done
 fi
 ctest --output-on-failure

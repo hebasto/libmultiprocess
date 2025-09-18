@@ -259,6 +259,8 @@ add_custom_target(install-lib
   VERBATIM)
 add_dependencies(install-lib multiprocess)
 
+message(FATAL_ERROR)
+
 # Example and test subdirectories
 add_subdirectory(example EXCLUDE_FROM_ALL)
 add_subdirectory(test EXCLUDE_FROM_ALL)

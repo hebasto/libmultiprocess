@@ -8,7 +8,7 @@
 
 let
   lib  = pkgs.lib;
-  llvm = crossPkgs.llvmPackages_20;
+  llvm = crossPkgs.llvmPackages_21;
   capnprotoHashes = {
     "0.7.0" = "sha256-Y/7dUOQPDHjniuKNRw3j8dG1NI9f/aRWpf8V0WzV9k8=";
     "0.7.1" = "sha256-3cBpVmpvCXyqPUXDp12vCFCk32ZXWpkdOliNH37UwWE=";

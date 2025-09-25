@@ -98,40 +98,16 @@ public:
     EventLoop& m_loop;
 };
 
-using LogFn = std::function<void(bool raise, std::string message)>;
-
-class Logger
-{
-public:
-    Logger(bool raise, LogFn& fn) : m_raise(raise), m_fn(fn) {}
-
-    Logger(Logger&&) = delete;
-    Logger& operator=(Logger&&) = delete;
-    Logger(const Logger&) = delete;
-    Logger& operator=(const Logger&) = delete;
-
-    ~Logger() noexcept(false)
-    {
-        if (m_fn) m_fn(m_raise, m_buffer.str());
-    }
-
-    template <typename T>
-    friend Logger& operator<<(Logger& logger, T&& value)
-    {
-        if (logger.m_fn) logger.m_buffer << std::forward<T>(value);
-        return logger;
-    }
-
-    template <typename T>
-    friend Logger& operator<<(Logger&& logger, T&& value)
-    {
-        return logger << std::forward<T>(value);
-    }
-
-    bool m_raise;
-    LogFn& m_fn;
-    std::ostringstream m_buffer;
+enum class Log {
+    Trace = 0,
+    Debug,
+    Info,
+    Warning,
+    Error,
+    Raise,
 };
+
+using LogFn = std::function<void(bool raise, std::string message)>;
 
 struct LogOptions {
 
@@ -141,6 +117,43 @@ struct LogOptions {
     //! Maximum number of characters to use when representing
     //! request and response structs as strings.
     size_t max_chars{200};
+
+    //! Messages with a severity level less than log_level will not be
+    //! reported.
+    Log log_level{Log::Trace};
+};
+
+class Logger
+{
+public:
+    Logger(const LogOptions& options, Log log_level) : m_options(options), m_log_level(log_level) {}
+
+    Logger(Logger&&) = delete;
+    Logger& operator=(Logger&&) = delete;
+    Logger(const Logger&) = delete;
+    Logger& operator=(const Logger&) = delete;
+
+    ~Logger() noexcept(false)
+    {
+        if (m_options.log_fn) m_options.log_fn(m_log_level == Log::Raise, m_buffer.str());
+    }
+
+    template <typename T>
+    friend Logger& operator<<(Logger& logger, T&& value)
+    {
+        if (logger.m_options.log_fn) logger.m_buffer << std::forward<T>(value);
+        return logger;
+    }
+
+    template <typename T>
+    friend Logger& operator<<(Logger&& logger, T&& value)
+    {
+        return logger << std::forward<T>(value);
+    }
+
+    const LogOptions& m_options;
+    Log m_log_level;
+    std::ostringstream m_buffer;
 };
 
 std::string LongThreadName(const char* exe_name);
@@ -222,12 +235,12 @@ public:
 
     Logger log()
     {
-        Logger logger(false, m_log_opts.log_fn);
+        Logger logger(m_log_opts, Log::Info);
         logger << "{" << LongThreadName(m_exe_name) << "} ";
         return logger;
     }
-    Logger logPlain() { return {false, m_log_opts.log_fn}; }
-    Logger raise() { return {true, m_log_opts.log_fn}; }
+    Logger logPlain() { return {m_log_opts, Log::Info}; }
+    Logger raise() { return {m_log_opts, Log::Raise}; }
 
     //! Process name included in thread names so combined debug output from
     //! multiple processes is easier to understand.

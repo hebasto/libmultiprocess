@@ -42,7 +42,7 @@ thread_local ThreadContext g_thread_context;
 void LoggingErrorHandler::taskFailed(kj::Exception&& exception)
 {
     KJ_LOG(ERROR, "Uncaught exception in daemonized task.", exception);
-    MP_LOG(m_loop, Log::Info) << "Uncaught exception in daemonized task.";
+    MP_LOG(m_loop, Log::Error) << "Uncaught exception in daemonized task.";
 }
 
 EventLoopRef::EventLoopRef(EventLoop& loop, Lock* lock) : m_loop(&loop), m_lock(lock)

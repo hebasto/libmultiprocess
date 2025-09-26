@@ -631,13 +631,17 @@ void clientInvoke(ProxyClient& proxy_client, const GetRequest& get_request, Fiel
         IterateFields().handleChain(*invoke_context, request, FieldList(), typename FieldObjs::BuildParams{&fields}...);
         MP_LOGPLAIN(*proxy_client.m_context.loop, Log::Info)
             << "{" << thread_context.thread_name << "} IPC client send "
-            << TypeName<typename Request::Params>() << " " << LogEscape(request.toString(), proxy_client.m_context.loop->m_log_opts.max_chars);
+            << TypeName<typename Request::Params>();
+        MP_LOGPLAIN(*proxy_client.m_context.loop, Log::Trace)
+            << "send data: " << LogEscape(request.toString(), proxy_client.m_context.loop->m_log_opts.max_chars);
 
         proxy_client.m_context.loop->m_task_set->add(request.send().then(
             [&](::capnp::Response<typename Request::Results>&& response) {
                 MP_LOGPLAIN(*proxy_client.m_context.loop, Log::Info)
                     << "{" << thread_context.thread_name << "} IPC client recv "
-                    << TypeName<typename Request::Results>() << " " << LogEscape(response.toString(), proxy_client.m_context.loop->m_log_opts.max_chars);
+                    << TypeName<typename Request::Results>();
+                MP_LOGPLAIN(*proxy_client.m_context.loop, Log::Trace)
+                    << "recv data: " << LogEscape(response.toString(), proxy_client.m_context.loop->m_log_opts.max_chars);
                 try {
                     IterateFields().handleChain(
                         *invoke_context, response, FieldList(), typename FieldObjs::ReadResults{&fields}...);
@@ -701,7 +705,9 @@ kj::Promise<void> serverInvoke(Server& server, CallContext& call_context, Fn fn)
 
     int req = ++server_reqs;
     MP_LOG(*server.m_context.loop, Log::Info) << "IPC server recv request  #" << req << " "
-                                     << TypeName<typename Params::Reads>() << " " << LogEscape(params.toString(), server.m_context.loop->m_log_opts.max_chars);
+                                     << TypeName<typename Params::Reads>();
+    MP_LOG(*server.m_context.loop, Log::Trace) << "request data: "
+        << LogEscape(params.toString(), server.m_context.loop->m_log_opts.max_chars);
 
     try {
         using ServerContext = ServerInvokeContext<Server, CallContext>;
@@ -717,8 +723,9 @@ kj::Promise<void> serverInvoke(Server& server, CallContext& call_context, Fn fn)
         return ReplaceVoid([&]() { return fn.invoke(server_context, ArgList()); },
             [&]() { return kj::Promise<CallContext>(kj::mv(call_context)); })
             .then([&server, req](CallContext call_context) {
-                MP_LOG(*server.m_context.loop, Log::Info) << "IPC server send response #" << req << " " << TypeName<Results>()
-                                                 << " " << LogEscape(call_context.getResults().toString(), server.m_context.loop->m_log_opts.max_chars);
+                MP_LOG(*server.m_context.loop, Log::Info) << "IPC server send response #" << req << " " << TypeName<Results>();
+                MP_LOG(*server.m_context.loop, Log::Trace) << "response data: "
+                    << LogEscape(call_context.getResults().toString(), server.m_context.loop->m_log_opts.max_chars);
             });
     } catch (const std::exception& e) {
         MP_LOG(*server.m_context.loop, Log::Info) << "IPC server unhandled exception: " << e.what();

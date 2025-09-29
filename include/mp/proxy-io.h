@@ -135,13 +135,13 @@ public:
 
     ~Logger() noexcept(false)
     {
-        if (m_options.log_fn) m_options.log_fn(m_log_level == Log::Raise, m_buffer.str());
+        if (enabled()) m_options.log_fn(m_log_level == Log::Raise, m_buffer.str());
     }
 
     template <typename T>
     friend Logger& operator<<(Logger& logger, T&& value)
     {
-        if (logger.m_options.log_fn) logger.m_buffer << std::forward<T>(value);
+        if (logger.enabled()) logger.m_buffer << std::forward<T>(value);
         return logger;
     }
 
@@ -149,6 +149,17 @@ public:
     friend Logger& operator<<(Logger&& logger, T&& value)
     {
         return logger << std::forward<T>(value);
+    }
+
+    explicit operator bool() const
+    {
+        return enabled();
+    }
+
+private:
+    bool enabled() const
+    {
+        return m_options.log_fn && m_log_level >= m_options.log_level;
     }
 
     const LogOptions& m_options;

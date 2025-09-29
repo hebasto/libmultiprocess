@@ -107,7 +107,16 @@ enum class Log {
     Raise,
 };
 
-using LogFn = std::function<void(bool raise, std::string message)>;
+struct LogMessage {
+
+    //! Message to be logged
+    std::string message;
+
+    //! The severity level of this message
+    Log level;
+};
+
+using LogFn = std::function<void(LogMessage)>;
 
 struct LogOptions {
 
@@ -135,7 +144,7 @@ public:
 
     ~Logger() noexcept(false)
     {
-        if (enabled()) m_options.log_fn(m_log_level == Log::Raise, m_buffer.str());
+        if (enabled()) m_options.log_fn({std::move(m_buffer).str(), m_log_level});
     }
 
     template <typename T>
@@ -207,6 +216,12 @@ public:
 
     //! Construct event loop object with specified logging options.
     EventLoop(const char* exe_name, LogOptions log_opts, void* context = nullptr);
+
+    //! Backwards-compatible constructor for previous (deprecated) logging callback signature
+    EventLoop(const char* exe_name, std::function<void(bool, std::string)> old_callback, void* context = nullptr)
+        : EventLoop(exe_name,
+                LogFn{[old_callback = std::move(old_callback)](LogMessage log_data) {old_callback(log_data.level == Log::Raise, std::move(log_data.message));}},
+                context){}
 
     ~EventLoop();
 

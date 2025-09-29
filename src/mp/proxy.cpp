@@ -42,7 +42,7 @@ thread_local ThreadContext g_thread_context;
 void LoggingErrorHandler::taskFailed(kj::Exception&& exception)
 {
     KJ_LOG(ERROR, "Uncaught exception in daemonized task.", exception);
-    m_loop.log() << "Uncaught exception in daemonized task.";
+    MP_LOG(m_loop, Log::Info) << "Uncaught exception in daemonized task.";
 }
 
 EventLoopRef::EventLoopRef(EventLoop& loop, Lock* lock) : m_loop(&loop), m_lock(lock)
@@ -251,9 +251,9 @@ void EventLoop::loop()
             break;
         }
     }
-    log() << "EventLoop::loop done, cancelling event listeners.";
+    MP_LOG(*this, Log::Info) << "EventLoop::loop done, cancelling event listeners.";
     m_task_set.reset();
-    log() << "EventLoop::loop bye.";
+    MP_LOG(*this, Log::Info) << "EventLoop::loop bye.";
     wait_stream = nullptr;
     KJ_SYSCALL(::close(post_fd));
     const Lock lock(m_mutex);

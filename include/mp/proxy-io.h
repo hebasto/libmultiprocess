@@ -167,6 +167,10 @@ private:
     std::ostringstream m_buffer;
 };
 
+#define MP_LOGPLAIN(loop, ...) if (mp::Logger logger{(loop).m_log_opts, __VA_ARGS__}; logger) logger
+
+#define MP_LOG(loop, ...) MP_LOGPLAIN(loop, __VA_ARGS__) << "{" << LongThreadName((loop).m_exe_name) << "} "
+
 std::string LongThreadName(const char* exe_name);
 
 //! Event loop implementation.
@@ -243,15 +247,6 @@ public:
 
     //! Check if loop should exit.
     bool done() const MP_REQUIRES(m_mutex);
-
-    Logger log()
-    {
-        Logger logger(m_log_opts, Log::Info);
-        logger << "{" << LongThreadName(m_exe_name) << "} ";
-        return logger;
-    }
-    Logger logPlain() { return {m_log_opts, Log::Info}; }
-    Logger raise() { return {m_log_opts, Log::Raise}; }
 
     //! Process name included in thread names so combined debug output from
     //! multiple processes is easier to understand.
@@ -677,7 +672,7 @@ std::unique_ptr<ProxyClient<InitInterface>> ConnectStream(EventLoop& loop, int f
         init_client = connection->m_rpc_system->bootstrap(ServerVatId().vat_id).castAs<InitInterface>();
         Connection* connection_ptr = connection.get();
         connection->onDisconnect([&loop, connection_ptr] {
-            loop.log() << "IPC client: unexpected network disconnect.";
+            MP_LOG(loop, Log::Info) << "IPC client: unexpected network disconnect.";
             delete connection_ptr;
         });
     });
@@ -700,7 +695,7 @@ void _Serve(EventLoop& loop, kj::Own<kj::AsyncIoStream>&& stream, InitImpl& init
     });
     auto it = loop.m_incoming_connections.begin();
     it->onDisconnect([&loop, it] {
-        loop.log() << "IPC server: socket disconnected.";
+        MP_LOG(loop, Log::Info) << "IPC server: socket disconnected.";
         loop.m_incoming_connections.erase(it);
     });
 }

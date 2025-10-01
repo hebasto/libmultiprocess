@@ -62,6 +62,7 @@ class FooImplementation
 {
 public:
     int add(int a, int b) { return a + b; }
+    void addOut(int a, int b, int& out) { out = a + b; }
     int mapSize(const std::map<std::string, std::string>& map) { return map.size(); }
     FooStruct pass(FooStruct foo) { return foo; }
     void raise(FooStruct foo) { throw foo; }

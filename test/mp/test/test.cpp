@@ -113,6 +113,9 @@ KJ_TEST("Call FooInterface methods")
     ProxyClient<messages::FooInterface>* foo = setup.client.get();
 
     KJ_EXPECT(foo->add(1, 2) == 3);
+    int ret;
+    foo->addOut(3, 4, ret);
+    KJ_EXPECT(ret == 7);
 
     FooStruct in;
     in.name = "name";

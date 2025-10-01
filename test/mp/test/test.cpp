@@ -116,6 +116,8 @@ KJ_TEST("Call FooInterface methods")
     int ret;
     foo->addOut(3, 4, ret);
     KJ_EXPECT(ret == 7);
+    foo->addInOut(3, ret);
+    KJ_EXPECT(ret == 10);
 
     FooStruct in;
     in.name = "name";

@@ -4,11 +4,17 @@
 , minimal ? false # Whether to create minimal shell without extra tools (faster when cross compiling)
 , capnprotoVersion ? null
 , cmakeVersion ? null
+, libcxxSanitizers ? null # Optional LLVM_USE_SANITIZER value to use for libc++, see https://llvm.org/docs/CMake.html
 }:
 
 let
   lib  = pkgs.lib;
-  llvm = crossPkgs.llvmPackages_20;
+  llvmBase = crossPkgs.llvmPackages_21;
+  llvm = llvmBase // lib.optionalAttrs (libcxxSanitizers != null) {
+    libcxx = llvmBase.libcxx.override {
+      devExtraCmakeFlags = [ "-DLLVM_USE_SANITIZER=${libcxxSanitizers}" ];
+    };
+  };
   capnprotoHashes = {
     "0.7.0" = "sha256-Y/7dUOQPDHjniuKNRw3j8dG1NI9f/aRWpf8V0WzV9k8=";
     "0.7.1" = "sha256-3cBpVmpvCXyqPUXDp12vCFCk32ZXWpkdOliNH37UwWE=";

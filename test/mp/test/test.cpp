@@ -13,7 +13,6 @@
 #include <exception>
 #include <functional>
 #include <future>
-#include <iostream>
 #include <kj/async.h>
 #include <kj/async-io.h>
 #include <kj/common.h>
@@ -67,9 +66,10 @@ public:
 
     TestSetup(bool client_owns_connection = true)
         : thread{[&] {
-              EventLoop loop("mptest", [](mp::LogMessage log_data) {
-                  std::cout << "LOG" << (int)log_data.level << ": " << log_data.message << "\n";
-                  if (log_data.level == mp::Log::Raise) throw std::runtime_error(log_data.message);
+              EventLoop loop("mptest", [](mp::LogMessage log) {
+                  // Info logs are not printed by default, but will be shown with `mptest --verbose`
+                  KJ_LOG(INFO, log.level, log.message);
+                  if (log.level == mp::Log::Raise) throw std::runtime_error(log.message);
               });
               auto pipe = loop.m_io_context.provider->newTwoWayPipe();
 

@@ -199,7 +199,7 @@ If this is the first asynchronous request made from the current client thread, `
 3. Create a local `Thread::Server` object for the current thread (stored in `callback_threads` map)
 4. Set the local thread capability in `Context.callbackThread`
 
-Subsequent requests will resuse the existing thread capabilites held in `callback_threads` and `request_threads`.
+Subsequent requests will reuse the existing thread capabilities held in `callback_threads` and `request_threads`.
 
 **Server side** (`PassField`):
 1. Looks up the local `Thread::Server` object specified by `context.thread`

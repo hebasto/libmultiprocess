@@ -5,6 +5,40 @@ on:
   pull_request:
 
 jobs:
+  build-netbsd:
+    runs-on: ubuntu-latest
+    name: build • netbsd
+    defaults:
+      run:
+        shell: netbsd {0}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Start NetBSD VM
+        uses: vmactions/netbsd-vm@v1
+        with:
+          prepare: |
+            /usr/sbin/pkg_add devel/cmake devel/ninja-build lang/gcc15 devel/git-base shells/bash
+            # capnproto build dependencies.
+            /usr/sbin/pkg_add devel/libtool-base pkgtools/mktools devel/pkgconf pkgtools/cwrappers
+          run: |
+            git clone --depth=1 https://github.com/NetBSD/pkgsrc.git /usr/pkgsrc
+          sync: 'rsync'
+          copyback: false
+
+      # The prebuilt capnproto package is broken because it was built with GCC 10.5.0.
+      # This could be reconsidered once GCC is updated to 14.1 or newer,
+      # or if switching to Clang.
+      - name: Install capnproto
+        run: |
+          cd /usr/pkgsrc/devel/capnproto/
+          env -u PKG_PATH make CPPFLAGS='-DKJ_NO_EXCEPTIONS=0' install
+
+      - name: Run CI script
+        run: |
+          cd ${{ github.workspace }}
+          CI_CONFIG="ci/configs/netbsd.bash" bash ci/scripts/ci.sh
+
   build-openbsd:
     runs-on: ubuntu-latest
     name: build • openbsd

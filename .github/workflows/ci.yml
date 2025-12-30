@@ -5,6 +5,53 @@ on:
   pull_request:
 
 jobs:
+  build-netbsd:
+    runs-on: ubuntu-latest
+    name: build • netbsd
+    defaults:
+      run:
+        shell: netbsd {0}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Start NetBSD VM
+        uses: vmactions/netbsd-vm@v1
+        with:
+          prepare: |
+            pkg_add cmake ninja-build gcc14
+          # capnproto prerequisites.
+          # See the following "Install capnproto" step.
+          run: |
+            set -e
+            pkg_add digest libtool-base mktools pkgconf cwrappers
+            pkg_admin -K /usr/pkg/pkgdb fetch-pkg-vulnerabilities
+            cd /usr
+            cvs -danoncvs@anoncvs.NetBSD.org:/cvsroot checkout -P \
+              pkgsrc/devel/capnproto \
+              pkgsrc/devel/libtool-base \
+              pkgsrc/devel/pkgconf \
+              pkgsrc/devel/zlib \
+              pkgsrc/lang/gcc15 \
+              pkgsrc/mk \
+              pkgsrc/pkgtools \
+              pkgsrc/security/openssl \
+              pkgsrc/sysutils/install-sh/files
+          sync: 'rsync'
+          copyback: false
+
+      # The prebuilt capnproto package is broken because it was built with GCC 10.5.0.
+      # This could be reconsidered once GCC is updated to 14.1 or newer,
+      # or if switching to Clang.
+      - name: Install capnproto
+        run: |
+          cd /usr/pkgsrc/devel/capnproto/
+          env -u PKG_PATH make CPPFLAGS='-DKJ_NO_EXCEPTIONS=0' install
+
+      - name: Run CI script
+        run: |
+          cd ${{ github.workspace }}
+          CI_CONFIG="ci/configs/netbsd.bash" bash ci/scripts/ci.sh
+
   build-openbsd:
     runs-on: ubuntu-latest
     name: build • openbsd

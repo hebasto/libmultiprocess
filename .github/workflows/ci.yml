@@ -18,16 +18,9 @@ jobs:
         uses: vmactions/openbsd-vm@v1
         with:
           prepare: |
-            pkg_add -v cmake ninja git bash
-          run: |
-            git clone --depth=1 https://codeberg.org/OpenBSD/ports.git /usr/ports
+            pkg_add -v cmake ninja bash capnproto
           sync: 'rsync'
           copyback: false
-
-      - name: Install capnproto
-        run: |
-          cd /usr/ports/devel/capnproto/
-          make install
 
       - name: Run CI script
         run: |

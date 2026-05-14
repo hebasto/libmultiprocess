@@ -12,6 +12,7 @@
 #include <optional>
 #include <string>
 #include <set>
+#include <unordered_set>
 #include <vector>
 
 namespace mp {
@@ -23,6 +24,7 @@ struct FooStruct
     std::set<int> setint;
     std::vector<bool> vbool;
     std::optional<int> optional_int;
+    std::unordered_set<int> unorderedsetint;
 };
 
 enum class FooEnum : uint8_t { ONE = 1, TWO = 2, };

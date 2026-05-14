@@ -57,6 +57,7 @@ struct FooStruct $Proxy.wrap("mp::test::FooStruct") {
     vbool @2 :List(Bool);
     optionalInt @3 :Int32 $Proxy.name("optional_int");
     hasOptionalInt @4 :Bool;
+    unorderedsetint @5 :List(Int32);
 }
 
 struct FooCustom $Proxy.wrap("mp::test::FooCustom") {

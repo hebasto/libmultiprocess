@@ -142,27 +142,27 @@ KJ_TEST("Call FooInterface methods")
 
     FooStruct in;
     in.name = "name";
-    in.setint.insert(2);
-    in.setint.insert(1);
-    in.unorderedsetint.insert(2);
-    in.unorderedsetint.insert(1);
-    in.vbool.push_back(false);
-    in.vbool.push_back(true);
-    in.vbool.push_back(false);
+    in.set_int.insert(2);
+    in.set_int.insert(1);
+    in.unordered_set_int.insert(2);
+    in.unordered_set_int.insert(1);
+    in.v_bool.push_back(false);
+    in.v_bool.push_back(true);
+    in.v_bool.push_back(false);
     in.optional_int = 3;
     FooStruct out = foo->pass(in);
     KJ_EXPECT(in.name == out.name);
-    KJ_EXPECT(in.setint.size() == out.setint.size());
-    for (auto init{in.setint.begin()}, outit{out.setint.begin()}; init != in.setint.end() && outit != out.setint.end(); ++init, ++outit) {
+    KJ_EXPECT(in.set_int.size() == out.set_int.size());
+    for (auto init{in.set_int.begin()}, outit{out.set_int.begin()}; init != in.set_int.end() && outit != out.set_int.end(); ++init, ++outit) {
         KJ_EXPECT(*init == *outit);
     }
-    KJ_EXPECT(in.unorderedsetint.size() == out.unorderedsetint.size());
-    for (const auto& elem : in.unorderedsetint) {
-        KJ_EXPECT(out.unorderedsetint.count(elem) == 1);
+    KJ_EXPECT(in.unordered_set_int.size() == out.unordered_set_int.size());
+    for (const auto& elem : in.unordered_set_int) {
+        KJ_EXPECT(out.unordered_set_int.count(elem) == 1);
     }
-    KJ_EXPECT(in.vbool.size() == out.vbool.size());
-    for (size_t i = 0; i < in.vbool.size(); ++i) {
-        KJ_EXPECT(in.vbool[i] == out.vbool[i]);
+    KJ_EXPECT(in.v_bool.size() == out.v_bool.size());
+    for (size_t i = 0; i < in.v_bool.size(); ++i) {
+        KJ_EXPECT(in.v_bool[i] == out.v_bool[i]);
     }
     KJ_EXPECT(in.optional_int == out.optional_int);
 

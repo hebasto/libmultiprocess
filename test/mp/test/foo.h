@@ -21,10 +21,10 @@ namespace test {
 struct FooStruct
 {
     std::string name;
-    std::set<int> setint;
-    std::vector<bool> vbool;
+    std::set<int> set_int;
+    std::vector<bool> v_bool;
     std::optional<int> optional_int;
-    std::unordered_set<int> unorderedsetint;
+    std::unordered_set<int> unordered_set_int;
 };
 
 enum class FooEnum : uint8_t { ONE = 1, TWO = 2, };

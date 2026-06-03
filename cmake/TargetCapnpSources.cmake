@@ -27,10 +27,8 @@ Arguments:
 
       #include <schema.capnp.h>
 
-    The specified include_prefix should be ${CMAKE_SOURCE_DIR} or a
-    subdirectory of it to include files relative to the project root. It can
-    be ${CMAKE_CURRENT_SOURCE_DIR} to include files relative to the current
-    source directory.
+    Pass ${CMAKE_CURRENT_SOURCE_DIR} or a subdirectory of it to include files
+    relative to the current source directory (the typical usage).
 
 Additional Unnamed Arguments:
 
@@ -46,9 +44,9 @@ Optional Keyword Arguments:
 Example:
   # Assuming `my_library` is a target and `lib/` contains `.capnp` schema
   # files with imports from `include/`.
-  target_capnp_sources(my_library "${CMAKE_SOURCE_DIR}"
+  target_capnp_sources(my_library "${CMAKE_CURRENT_SOURCE_DIR}"
                        lib/schema1.capnp lib/schema2.capnp
-                       IMPORT_PATHS ${CMAKE_SOURCE_DIR}/include)
+                       IMPORT_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 #]=]
 
@@ -98,8 +96,8 @@ function(target_capnp_sources target include_prefix)
 
   # Translate include_prefix from a source path to a binary path and add it as a
   # target include directory.
-  set(build_include_prefix ${CMAKE_BINARY_DIR})
-  file(RELATIVE_PATH relative_path ${CMAKE_SOURCE_DIR} ${include_prefix})
+  set(build_include_prefix ${CMAKE_CURRENT_BINARY_DIR})
+  file(RELATIVE_PATH relative_path ${CMAKE_CURRENT_SOURCE_DIR} ${include_prefix})
   if(relative_path)
     string(APPEND build_include_prefix "/" "${relative_path}")
   endif()

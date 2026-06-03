@@ -644,11 +644,7 @@ struct CapRequestTraits<::capnp::Request<_Params, _Results>>
 template <typename Client>
 void clientDestroy(Client& client)
 {
-    if (client.m_context.connection) {
-        MP_LOG(*client.m_context.loop, Log::Debug) << "IPC client destroy " << CxxTypeName(client);
-    } else {
-        KJ_LOG(INFO, "IPC interrupted client destroy", CxxTypeName(client));
-    }
+    MP_LOG(*client.m_context.loop, Log::Debug) << "IPC client destroy " << CxxTypeName(client);
 }
 
 template <typename Server>

@@ -41,6 +41,13 @@ Optional Keyword Arguments:
   IMPORT_PATHS: Specifies additional directories to search for imported
     `.capnp` files.
 
+  ONLY_CAPNP: If specified, only the Cap'n Proto serialization files
+    (`.capnp.h`, `.capnp.c++`) are generated and compiled. The mpgen proxy
+    files (`.capnp.proxy-client.c++`, `.capnp.proxy-server.c++`,
+    `.capnp.proxy-types.c++`, etc.) are skipped. Useful when you need
+    Cap'n Proto serialization without the multiprocess RPC proxy
+    infrastructure.
+
 Example:
   # Assuming `my_library` is a target and `lib/` contains `.capnp` schema
   # files with imports from `include/`.

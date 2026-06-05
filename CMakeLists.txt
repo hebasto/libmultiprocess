@@ -139,6 +139,10 @@ configure_file(include/mp/config.h.in "${CMAKE_CURRENT_BINARY_DIR}/include/mp/co
 # Generated C++ Capn'Proto schema files
 capnp_generate_cpp(MP_PROXY_SRCS MP_PROXY_HDRS include/mp/proxy.capnp)
 set_source_files_properties("${MP_PROXY_SRCS}" PROPERTIES SKIP_LINTING TRUE) # Ignored before cmake 3.27
+# Add a convenience custom target that allows generating
+# Cap'n Proto C++ source files, which is useful as
+# the `capnp_generate_cpp` function is not CODEGEN-aware.
+add_custom_target(mp_proxy_codegen DEPENDS ${MP_PROXY_SRCS} ${MP_PROXY_HDRS})
 
 # util library
 add_library(mputil OBJECT src/mp/util.cpp)

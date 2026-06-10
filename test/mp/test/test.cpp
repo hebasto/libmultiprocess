@@ -510,6 +510,7 @@ KJ_TEST("Make simultaneous IPC calls on single remote thread")
                 [&running, &tc, i](auto&& results) {
                     assert(results.getResult() == static_cast<int32_t>(100 * (i+1)));
                     running -= 1;
+                    Lock lock(tc.waiter->m_mutex);
                     tc.waiter->m_cv.notify_all();
                 }));
         }

@@ -30,6 +30,7 @@ interface FooInterface $Proxy.wrap("mp::test::FooImplementation") {
     passMessage @13 (arg :FooMessage) -> (result :FooMessage);
     passMutable @14 (arg :FooMutable) -> (arg :FooMutable);
     passEnum @15 (arg :Int32) -> (result :Int32);
+    passDouble @23 (arg :Float64) -> (result :Float64);
     passFn @16 (context :Proxy.Context, fn :FooFn) -> (result :Int32);
     callFn @17 () -> ();
     callFnAsync @18 (context :Proxy.Context) -> ();

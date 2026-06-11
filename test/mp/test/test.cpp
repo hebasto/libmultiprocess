@@ -230,6 +230,8 @@ KJ_TEST("Call FooInterface methods")
     foo->passMutable(mut);
     KJ_EXPECT(mut.message == "init build pass call return read");
 
+    KJ_EXPECT(foo->passDouble(1.25) == 1.25);
+
     KJ_EXPECT(foo->passFn([]{ return 10; }) == 10);
 
     std::vector<FooDataRef> data_in;

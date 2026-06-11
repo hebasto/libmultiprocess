@@ -86,6 +86,7 @@ public:
     FooMessage passMessage(FooMessage foo) { foo.message += " call"; return foo; }
     void passMutable(FooMutable& foo) { foo.message += " call"; }
     FooEnum passEnum(FooEnum foo) { return foo; }
+    double passDouble(double value) { return value; }
     int passFn(std::function<int()> fn) { return fn(); }
     std::vector<FooDataRef> passDataPointers(std::vector<FooDataRef> values) { return values; }
     std::shared_ptr<FooCallback> m_callback;

@@ -384,7 +384,7 @@ struct Waiter
     }
 
     template <class Predicate>
-    void wait(Lock& lock, Predicate pred)
+    void wait(Lock& lock, Predicate pred) MP_REQUIRES(m_mutex)
     {
         m_cv.wait(lock.m_lock, [&]() MP_REQUIRES(m_mutex) {
             // Important for this to be "while (m_fn)", not "if (m_fn)" to avoid
@@ -410,7 +410,7 @@ struct Waiter
     //! EventLoop::m_mutex as long as Waiter::mutex is locked first and
     //! EventLoop::m_mutex is locked second.
     Mutex m_mutex;
-    std::condition_variable m_cv;
+    std::condition_variable m_cv MP_GUARDED_BY(m_mutex);
     std::optional<kj::Function<void()>> m_fn MP_GUARDED_BY(m_mutex);
 };
 

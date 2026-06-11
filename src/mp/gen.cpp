@@ -6,6 +6,7 @@
 #include <mp/util.h>
 
 #include <algorithm>
+#include <capnp/schema.capnp.h> // IWYU pragma: keep
 #include <capnp/schema.h>
 #include <capnp/schema-parser.h>
 #include <cerrno>
@@ -329,12 +330,17 @@ static void Generate(kj::StringPtr src_prefix,
     cpp_client << "#include <" << include_path << ".h>\n";
     cpp_client << "#include <" << include_path << ".proxy.h>\n";
     cpp_client << "#include <" << include_path << ".proxy-types.h>\n";
+    cpp_client << "#include <capnp/capability.h>\n";
+    cpp_client << "#include <capnp/common.h>\n";
     cpp_client << "#include <capnp/generated-header-support.h>\n";
     cpp_client << "#include <cstring>\n";
-    cpp_client << "#include <vector>\n";
+    cpp_client << "#include <functional>\n";
     cpp_client << "#include <kj/common.h>\n";
+    cpp_client << "#include <map>\n";
     cpp_client << "#include <mp/proxy.h>\n";
     cpp_client << "#include <mp/util.h>\n";
+    cpp_client << "#include <string>\n";
+    cpp_client << "#include <vector>\n";
     cpp_client << "#include <" << PROXY_TYPES << ">\n";
     cpp_client << "// IWYU pragma: end_keep\n\n";
     cpp_client << "namespace mp {\n";
@@ -346,8 +352,6 @@ static void Generate(kj::StringPtr src_prefix,
     cpp_types << "#include <" << include_path << ".h> // IWYU pragma: keep\n";
     cpp_types << "#include <" << include_path << ".proxy.h>\n";
     cpp_types << "#include <" << include_path << ".proxy-types.h> // IWYU pragma: keep\n";
-    cpp_types << "#include <kj/common.h>\n";
-    cpp_types << "#include <mp/util.h>\n";
     cpp_types << "#include <" << PROXY_TYPES << ">\n\n";
     cpp_types << "namespace mp {\n";
 

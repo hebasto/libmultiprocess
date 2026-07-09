@@ -16,9 +16,9 @@ template <class Rep, class Period, typename Value, typename Output>
 void CustomBuildField(TypeList<std::chrono::duration<Rep, Period>>, Priority<1>, InvokeContext& invoke_context, Value&& value,
                       Output&& output)
 {
-    static_assert(std::numeric_limits<decltype(output.get())>::lowest() <= std::numeric_limits<Rep>::lowest(),
+    static_assert(safe_less_equal(std::numeric_limits<decltype(output.get())>::lowest(), std::numeric_limits<Rep>::lowest()),
                   "capnp type does not have enough range to hold lowest std::chrono::duration value");
-    static_assert(std::numeric_limits<decltype(output.get())>::max() >= std::numeric_limits<Rep>::max(),
+    static_assert(safe_greater_equal(std::numeric_limits<decltype(output.get())>::max(), std::numeric_limits<Rep>::max()),
                   "capnp type does not have enough range to hold highest std::chrono::duration value");
     output.set(value.count());
 }

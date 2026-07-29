@@ -34,4 +34,7 @@ else
     cmake --build . --target "$t" -- "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}"
   done
 fi
+
+./test/mptest
+
 ctest --output-on-failure

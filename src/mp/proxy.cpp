@@ -42,6 +42,11 @@ namespace mp {
 
 thread_local ThreadContext g_thread_context; // NOLINT(bitcoin-nontrivial-threadlocal)
 
+ThreadContext& CurrentThread()
+{
+    return g_thread_context;
+}
+
 Stream MakeStream(EventLoop&loop, SocketId socket)
 {
     Stream stream;
@@ -283,9 +288,9 @@ EventLoop::~EventLoop()
 
 void EventLoop::loop()
 {
-    assert(!g_thread_context.loop_thread);
-    g_thread_context.loop_thread = true;
-    KJ_DEFER(g_thread_context.loop_thread = false);
+    assert(!CurrentThread().loop_thread);
+    CurrentThread().loop_thread = true;
+    KJ_DEFER(CurrentThread().loop_thread = false);
 
     {
         const Lock lock(m_mutex);
@@ -479,11 +484,11 @@ kj::Promise<void> ProxyServer<ThreadMap>::makePool(MakePoolContext context)
         const std::string thread_name = "pool/" + std::to_string(i);
         std::promise<ThreadContext*> thread_context;
         std::thread thread([&loop, &thread_context, thread_name]() {
-            g_thread_context.thread_name = ThreadName(loop.m_exe_name) + " (" + thread_name + ")";
-            g_thread_context.waiter = std::make_unique<Waiter>();
-            Lock lock(g_thread_context.waiter->m_mutex);
-            thread_context.set_value(&g_thread_context);
-            g_thread_context.waiter->wait(lock, [] { return !g_thread_context.waiter; });
+            CurrentThread().thread_name = ThreadName(loop.m_exe_name) + " (" + thread_name + ")";
+            CurrentThread().waiter = std::make_unique<Waiter>();
+            Lock lock(CurrentThread().waiter->m_mutex);
+            thread_context.set_value(&CurrentThread());
+            CurrentThread().waiter->wait(lock, [] { return !CurrentThread().waiter; });
         });
         auto thread_server = kj::heap<ProxyServer<Thread>>(m_connection, *thread_context.get_future().get(), std::move(thread));
         m_connection.m_thread_pool.push_back({m_connection.m_threads.add(kj::mv(thread_server))});
@@ -498,14 +503,14 @@ kj::Promise<void> ProxyServer<ThreadMap>::makeThread(MakeThreadContext context)
     const std::string from = context.getParams().getName();
     std::promise<ThreadContext*> thread_context;
     std::thread thread([&loop, &thread_context, from]() {
-        g_thread_context.thread_name = ThreadName(loop.m_exe_name) + " (from " + from + ")";
-        g_thread_context.waiter = std::make_unique<Waiter>();
-        Lock lock(g_thread_context.waiter->m_mutex);
-        thread_context.set_value(&g_thread_context);
+        CurrentThread().thread_name = ThreadName(loop.m_exe_name) + " (from " + from + ")";
+        CurrentThread().waiter = std::make_unique<Waiter>();
+        Lock lock(CurrentThread().waiter->m_mutex);
+        thread_context.set_value(&CurrentThread());
         if (loop.testing_hook_makethread_created) loop.testing_hook_makethread_created();
         // Wait for shutdown signal from ProxyServer<Thread> destructor (signal
         // is just waiter getting set to null.)
-        g_thread_context.waiter->wait(lock, [] { return !g_thread_context.waiter; });
+        CurrentThread().waiter->wait(lock, [] { return !CurrentThread().waiter; });
     });
     auto thread_server = kj::heap<ProxyServer<Thread>>(m_connection, *thread_context.get_future().get(), std::move(thread));
     auto thread_client = m_connection.m_threads.add(kj::mv(thread_server));
@@ -517,7 +522,7 @@ std::atomic<int> server_reqs{0};
 
 std::string LongThreadName(const char* exe_name)
 {
-    return g_thread_context.thread_name.empty() ? ThreadName(exe_name) : g_thread_context.thread_name;
+    return CurrentThread().thread_name.empty() ? ThreadName(exe_name) : CurrentThread().thread_name;
 }
 
 kj::StringPtr KJ_STRINGIFY(Log v)

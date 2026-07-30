@@ -694,7 +694,7 @@ using ConnThread = ConnThreads::iterator;
 // inserted bool.
 std::tuple<ConnThread, bool> SetThread(GuardedRef<ConnThreads> threads, Connection* connection, const std::function<Thread::Client()>& make_thread);
 
-//! The thread_local ThreadContext g_thread_context struct provides information
+//! The thread_local ThreadContext struct (see CurrentThread()) provides information
 //! about individual threads and a way of communicating between them. Because
 //! it's a thread local struct, each ThreadContext instance is initialized by
 //! the thread that owns it.
@@ -933,6 +933,26 @@ extern thread_local ThreadContext g_thread_context; // NOLINT(bitcoin-nontrivial
 // Silence nonstandard bitcoin tidy error "Variable with non-trivial destructor
 // cannot be thread_local" which should not be a problem on modern platforms, and
 // could lead to a small memory leak at worst on older ones.
+
+//! Return the current thread's ThreadContext.
+//!
+//! Why per-thread state is needed at all: libmultiprocess has no control over
+//! which threads the C++ application uses to call ProxyClient methods after
+//! the proxy objects are returned to it. The thread-mapping model (see
+//! "Thread Mapping" in doc/design.md) gives each application thread making
+//! IPC calls a dedicated server-side thread that executes its requests, so
+//! thread-local state and recursive mutexes work as expected across the
+//! process boundary and callbacks from the server run on the originating
+//! client thread. The client-side handles for those dedicated server threads
+//! (the ProxyClient<Thread> objects returned by ThreadMap.makeThread, stored
+//! per connection in the request_threads / callback_threads maps below) are
+//! state that must be keyed implicitly by the calling thread, and must be
+//! released when the client thread exits so the corresponding server threads
+//! are freed. A thread_local object is the C++ mechanism that provides both
+//! of these: per-thread storage plus a destructor that runs at thread exit
+//! (the C equivalent would be a pthread key destructor). This is why
+//! ThreadContext is thread_local and why its destructor is nontrivial.
+ThreadContext& CurrentThread();
 
 } // namespace mp
 

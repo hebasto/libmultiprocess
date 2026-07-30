@@ -21,7 +21,7 @@ LocalType BuildPrimitive(InvokeContext& invoke_context,
 }
 
 template <typename LocalType, typename Value>
-    requires std::is_integral_v<Value>
+    requires (std::is_integral_v<Value> && !std::is_same_v<std::remove_cv_t<Value>, bool>)
 LocalType BuildPrimitive(InvokeContext& invoke_context,
     const Value& value,
     TypeList<LocalType>)
@@ -30,6 +30,14 @@ LocalType BuildPrimitive(InvokeContext& invoke_context,
         std::numeric_limits<LocalType>::lowest() <= std::numeric_limits<Value>::lowest(), "mismatched integral types");
     static_assert(
         std::numeric_limits<LocalType>::max() >= std::numeric_limits<Value>::max(), "mismatched integral types");
+    return value;
+}
+
+template <typename LocalType>
+LocalType BuildPrimitive(InvokeContext& invoke_context, bool value, TypeList<LocalType>)
+{
+    static_assert(std::is_same_v<LocalType, bool>,
+        "capnp field type should be Bool for bool parameters. Fix the .capnp schema.");
     return value;
 }
 

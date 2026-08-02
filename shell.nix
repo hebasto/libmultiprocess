@@ -5,6 +5,7 @@
 , capnprotoVersion ? null
 , capnprotoSanitizers ? null # Optional sanitizers to build cap'n proto with
 , cmakeVersion ? null
+, gccVersion ? null
 , libcxxSanitizers ? null # Optional LLVM_USE_SANITIZER value to use for libc++, see https://llvm.org/docs/CMake.html
 }:
 
@@ -59,6 +60,7 @@ let
   cmakeHashes = {
     "3.12.4" = "sha256-UlVYS/0EPrcXViz/iULUcvHA5GecSUHYS6raqbKOMZQ=";
   };
+  gcc = if gccVersion == null then null else builtins.getAttr ("gcc" + gccVersion) pkgs;
   cmakeBuild = if cmakeVersion == null then pkgs.cmake else (pkgs.cmake.overrideAttrs (old: {
     version = cmakeVersion;
     src = pkgs.fetchurl {
@@ -75,10 +77,13 @@ in crossPkgs.mkShell {
     cmakeBuild
     include-what-you-use
     ninja
-  ] ++ lib.optionals (!minimal) [
+  ] ++ lib.optional (gcc != null) gcc ++ lib.optionals (!minimal) [
     clang
     clang-tools
   ];
+
+  CC = if gcc == null then null else "${gcc}/bin/gcc";
+  CXX = if gcc == null then null else "${gcc}/bin/g++";
 
   # Tell IWYU where its libc++ mapping lives
   IWYU_MAPPING_FILE = if enableLibcxx then "${llvm.libcxx.dev}/include/c++/v1/libcxx.imp" else null;

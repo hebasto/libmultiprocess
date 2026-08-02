@@ -17,8 +17,6 @@ jobs:
         # Test all supported releases.
         # See https://www.netbsd.org/releases/.
         include:
-          - release: 9.4
-            capnproto-cppflags: 'CPPFLAGS="-DKJ_NO_EXCEPTIONS=0 -DKJ_USE_KQUEUE=0"'
           - release: 10.1
             capnproto-cppflags: 'CPPFLAGS="-DKJ_NO_EXCEPTIONS=0"'
     steps:

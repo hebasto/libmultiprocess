@@ -10,7 +10,7 @@
 
 let
   lib  = pkgs.lib;
-  llvmBase = crossPkgs.llvmPackages_21;
+  llvmBase = crossPkgs.llvmPackages_22;
   llvm = llvmBase // lib.optionalAttrs (libcxxSanitizers != null) {
     libcxx = llvmBase.libcxx.override {
       devExtraCmakeFlags = [ "-DLLVM_USE_SANITIZER=${libcxxSanitizers}" ];
@@ -57,7 +57,7 @@ let
   clang = if enableLibcxx then llvm.libcxxClang else llvm.clang;
   clang-tools = llvm.clang-tools.override { inherit enableLibcxx; };
   include-what-you-use = pkgs.include-what-you-use.override {
-    llvmPackages = pkgs.llvmPackages_21;
+    llvmPackages = pkgs.llvmPackages_22;
   };
   cmakeHashes = {
     "3.12.4" = "sha256-UlVYS/0EPrcXViz/iULUcvHA5GecSUHYS6raqbKOMZQ=";

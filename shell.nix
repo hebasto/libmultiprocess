@@ -56,6 +56,9 @@ let
   })).override (lib.optionalAttrs enableLibcxx { clangStdenv = llvm.libcxxStdenv; });
   clang = if enableLibcxx then llvm.libcxxClang else llvm.clang;
   clang-tools = llvm.clang-tools.override { inherit enableLibcxx; };
+  include-what-you-use = pkgs.include-what-you-use.override {
+    llvmPackages = pkgs.llvmPackages_21;
+  };
   cmakeHashes = {
     "3.12.4" = "sha256-UlVYS/0EPrcXViz/iULUcvHA5GecSUHYS6raqbKOMZQ=";
   };

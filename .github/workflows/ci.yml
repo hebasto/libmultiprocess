@@ -17,10 +17,16 @@ jobs:
         # Test all supported releases.
         # See https://www.netbsd.org/releases/.
         include:
-          - release: 9.4
-            capnproto-cppflags: 'CPPFLAGS="-DKJ_NO_EXCEPTIONS=0 -DKJ_USE_KQUEUE=0"'
-          - release: 10.1
+          # Due to a bug in Cap'n Proto, GCC compilers older
+          # than 14.x require `-DKJ_NO_EXCEPTIONS=0` when
+          # processing `capnproto/c++/src/kj/common.h`.
+          # See https://github.com/capnproto/capnproto/pull/2756/changes/28fa1a6753514d8de56875ec2222fa0e1c3a04f7.
+          - release: '10.1'
             capnproto-cppflags: 'CPPFLAGS="-DKJ_NO_EXCEPTIONS=0"'
+            env_vars: 'CXXFLAGS="-DKJ_NO_EXCEPTIONS=0"'
+          - release: '11.0'
+            capnproto-cppflags: 'CPPFLAGS="-DKJ_NO_EXCEPTIONS=0"'
+            env_vars: 'CXXFLAGS="-DKJ_NO_EXCEPTIONS=0"'
     steps:
       - uses: actions/checkout@v6
 
@@ -63,7 +69,7 @@ jobs:
       - name: Run CI script
         run: |
           cd ${{ github.workspace }}
-          CI_CONFIG="ci/configs/netbsd.bash" bash ci/scripts/ci.sh
+          CI_CONFIG="ci/configs/netbsd.bash" ${{ matrix.env_vars }} bash ci/scripts/ci.sh
 
   build-openbsd:
     runs-on: ubuntu-latest

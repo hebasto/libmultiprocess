@@ -35,9 +35,7 @@ set(CAPNPROTO_CLANG_INCOMPATIBLE FALSE)
 # https://github.com/capnproto/capnproto/blob/master/security-advisories/2022-11-30-0-pointer-list-bounds.md
 # https://capnproto.org/news/2022-11-30-CVE-2022-46149-security-advisory.html
 # https://dwrensha.github.io/capnproto-rust/2022/11/30/out_of_bounds_memory_access_bug.html
-if(CapnProto_VERSION STREQUAL "0.7.0"
-   OR CapnProto_VERSION STREQUAL "0.8.0"
-   OR CapnProto_VERSION STREQUAL "0.9.0"
+if(CapnProto_VERSION STREQUAL "0.9.0"
    OR CapnProto_VERSION STREQUAL "0.9.1"
    OR CapnProto_VERSION STREQUAL "0.10.0"
    OR CapnProto_VERSION STREQUAL "0.10.1"

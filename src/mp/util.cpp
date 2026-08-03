@@ -13,6 +13,7 @@
 #include <kj/string-tree.h>
 #include <optional>
 #include <pthread.h>
+#include <csignal>
 #include <sstream>
 #include <string>
 #include <sys/types.h>
@@ -159,6 +160,16 @@ void WriteSpawnError(int fd, const SpawnError& error)
     }
 }
 
+// Get rid of a child process the parent is abandoning because SpawnProcess is
+// about to throw, so it is not left behind as a zombie. The child may still be
+// alive, so kill it first: waiting without that could block for as long as the 
+// spawned program runs.
+void KillAndReapChild(ProcessId pid)
+{
+    (void)::kill(pid, SIGKILL);
+    while (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1 && errno == EINTR) {}
+}
+
 } // namespace
 
 std::string ThreadName(const char* exe_name)
@@ -250,6 +261,7 @@ std::tuple<ProcessId, SocketId> SpawnProcess(SpawnConnectInfoToArgsFn&& connect_
             (void)close(fds[1]);
             (void)close(error_fds[0]);
             (void)close(error_fds[1]);
+            KillAndReapChild(pid);
             throw std::system_error(err, std::system_category(), "close");
         }
         WriteSpawnError(error_fds[0], {.which = SpawnErrorOp::CLOSE, .err = err});
@@ -291,6 +303,7 @@ std::tuple<ProcessId, SocketId> SpawnProcess(SpawnConnectInfoToArgsFn&& connect_
         const int err = errno;
         (void)close(error_fds[1]);
         (void)close(fds[1]);
+        KillAndReapChild(pid);
         throw std::system_error(err, std::system_category(), "close");
     }
 
@@ -298,6 +311,7 @@ std::tuple<ProcessId, SocketId> SpawnProcess(SpawnConnectInfoToArgsFn&& connect_
     (void)close(error_fds[1]);
     if (error) {
         (void)close(fds[1]);
+        KillAndReapChild(pid);
         throw std::system_error(error->err, std::system_category(), SpawnErrorName(error->which));
     }
     return {pid, fds[1]};

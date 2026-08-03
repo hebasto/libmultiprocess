@@ -33,6 +33,21 @@ namespace mp {
 
 //! Generic utility functions used by capnp code.
 
+// std::cmp_less_equal/cmp_greater_equal only accept integer types (C++20 §[utility.intcmp]).
+// These wrappers fall back to regular comparison for floating-point types.
+template <typename A, typename B>
+constexpr bool safe_less_equal(A a, B b)
+{
+    if constexpr (std::is_floating_point_v<A> || std::is_floating_point_v<B>) return a <= b;
+    else return std::cmp_less_equal(a, b);
+}
+template <typename A, typename B>
+constexpr bool safe_greater_equal(A a, B b)
+{
+    if constexpr (std::is_floating_point_v<A> || std::is_floating_point_v<B>) return a >= b;
+    else return std::cmp_greater_equal(a, b);
+}
+
 //! Type holding a list of types.
 //!
 //! Example:

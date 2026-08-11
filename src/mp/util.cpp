@@ -35,6 +35,10 @@
 #include <pthread_np.h>
 #endif // HAVE_PTHREAD_GETTHREADID_NP
 
+#if __has_include(<sys/prctl.h>)
+#include <sys/prctl.h>
+#endif
+
 extern "C" char **environ; // NOLINT(readability-redundant-declaration)
 
 namespace mp {
@@ -171,6 +175,24 @@ void KillAndReapChild(ProcessId pid)
 }
 
 } // namespace
+
+// Copied from https://github.com/bitcoin/bitcoin/blob/d3e40af2597/src/util/threadnames.cpp#L21-L36
+void SetOsThreadName(const char* name)
+{
+#if defined(PR_SET_NAME)
+    // Only the first 15 characters are used (16 - NUL terminator)
+    ::prctl(PR_SET_NAME, name, 0, 0, 0);
+#elif defined(HAVE_PTHREAD_SETNAME_NP_3ARG)
+    pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name));
+#elif defined(HAVE_PTHREAD_GETTHREADID_NP)
+    pthread_set_name_np(pthread_self(), name);
+#elif defined(__APPLE__)
+    pthread_setname_np(name);
+#else
+    // Prevent warnings for unused parameters...
+    (void)name;
+#endif
+}
 
 std::string ThreadName(const char* exe_name)
 {

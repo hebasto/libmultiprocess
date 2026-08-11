@@ -50,9 +50,9 @@ jobs:
               pkgsrc/devel/libtool-base \
               pkgsrc/devel/pkgconf \
               pkgsrc/devel/zlib \
-              `# gcc15 is referenced here because the pkgsrc framework requires lang/gcc15/version.mk to exist` \
+              `# gcc16 is referenced here because the pkgsrc framework requires lang/gcc16/version.mk to exist` \
               `# during the "make install" step below, even though we compile our project with gcc14.` \
-              pkgsrc/lang/gcc15 \
+              pkgsrc/lang/gcc16 \
               pkgsrc/mk \
               pkgsrc/pkgtools \
               pkgsrc/security/openssl \

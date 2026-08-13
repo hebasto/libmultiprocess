@@ -75,6 +75,8 @@ KJ_TEST("ConnectStream connects to a socket serving a valid init interface")
         server_loop.loop();
     });
 
+    // FooInit has a `construct()` method, so this connects to the server and
+    // sends an IPC request that must complete successfully.
     auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, client_fd));
 
     init.reset();

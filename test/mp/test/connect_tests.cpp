@@ -38,17 +38,17 @@ constexpr auto FAILURE_TIMEOUT = std::chrono::seconds{30};
 class TestSetup
 {
 public:
-    mp::EventLoop* m_loop;
-    std::optional<mp::EventLoopRef> m_loop_ref;
+    EventLoop* m_loop;
+    std::optional<EventLoopRef> m_loop_ref;
     //! Thread variable should be after other struct members so the thread does
     //! not start until the other members are initialized.
     std::thread m_loop_thread;
 
-    TestSetup(mp::LogFn log_handler = DefaultLogHandler)
+    TestSetup(LogFn log_handler = DefaultLogHandler)
     {
-        std::promise<mp::EventLoop*> loop_promise;
+        std::promise<EventLoop*> loop_promise;
         m_loop_thread = std::thread([&, log_handler] {
-            mp::EventLoop loop("mptest-connect", log_handler);
+            EventLoop loop("mptest-connect", log_handler);
             loop_promise.set_value(&loop);
             loop.loop();
         });
@@ -69,7 +69,7 @@ KJ_TEST("ConnectStream connects to a socket serving a valid init interface")
     auto [client_fd, server_fd] = SocketPair();
 
     std::thread server_thread([&]() {
-        mp::EventLoop server_loop("mptest-valid-server", DefaultLogHandler);
+        EventLoop server_loop("mptest-valid-server", DefaultLogHandler);
         std::unique_ptr<FooInit> init = std::make_unique<FooInit>();
         ServeStream<messages::FooInit>(server_loop, MakeStream(server_loop, server_fd), *init);
         server_loop.loop();
@@ -127,8 +127,8 @@ KJ_TEST("ConnectStream handles a disconnect when no client calls are made")
     std::condition_variable cv;
     bool warned = false;
 
-    TestSetup setup([&](mp::LogMessage log) {
-        if (log.level == mp::Log::Warning && log.message.find("unexpected network disconnect") != std::string::npos) {
+    TestSetup setup([&](LogMessage log) {
+        if (log.level == Log::Warning && log.message.find("unexpected network disconnect") != std::string::npos) {
             const std::lock_guard<std::mutex> lock(mutex);
             warned = true;
             cv.notify_all();

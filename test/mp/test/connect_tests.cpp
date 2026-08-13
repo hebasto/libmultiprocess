@@ -79,7 +79,6 @@ KJ_TEST("ConnectStream connects to a socket serving a valid init interface")
 
     init.reset();
     server_thread.join();
-    KJ_EXPECT(true);
 }
 
 KJ_TEST("ConnectStream throws when the socket is already disconnected")

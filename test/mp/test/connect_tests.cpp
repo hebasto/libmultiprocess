@@ -166,14 +166,12 @@ KJ_TEST("ConnectStream throws when the socket disconnects after receiving data")
     try {
         auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, client_fd));
 
-        if (server_thread.joinable()) server_thread.join();
         KJ_EXPECT(false);
     } catch (const std::runtime_error& e) {
-        if (server_thread.joinable()) server_thread.join();
-
         std::string_view reason = e.what();
         KJ_EXPECT(reason == "IPC client method call interrupted by disconnect.");
     }
+    server_thread.join();
 }
 
 KJ_TEST("ConnectStream throws when a connection accepted from a listener disconnects after receiving data")
@@ -202,14 +200,12 @@ KJ_TEST("ConnectStream throws when a connection accepted from a listener disconn
     try {
         auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, client_fd));
 
-        if (server_thread.joinable()) server_thread.join();
         KJ_EXPECT(false);
     } catch (const std::runtime_error& e) {
-        if (server_thread.joinable()) server_thread.join();
-
         std::string_view reason = e.what();
         KJ_EXPECT(reason == "IPC client method call interrupted by disconnect.");
     }
+    server_thread.join();
 }
 
 } // namespace

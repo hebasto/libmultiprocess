@@ -86,7 +86,7 @@ KJ_TEST("ConnectStream throws when the socket is already disconnected")
     TestSetup setup;
     auto [client_fd, server_fd] = SocketPair();
 
-    close(server_fd);
+    KJ_SYSCALL(close(server_fd));
 
     try {
         auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, client_fd));
@@ -104,7 +104,7 @@ KJ_TEST("ConnectStream defers disconnect failure to the first IPC request for in
     TestSetup setup;
     auto [client_fd, server_fd] = SocketPair();
 
-    close(server_fd);
+    KJ_SYSCALL(close(server_fd));
 
     // Without a construct() method no IPC call is made during client
     // creation, so ConnectStream succeeds even though the peer is gone.
@@ -136,7 +136,7 @@ KJ_TEST("ConnectStream handles a disconnect when no client calls are made")
     });
     auto [client_fd, server_fd] = SocketPair();
 
-    close(server_fd);
+    KJ_SYSCALL(close(server_fd));
 
     auto foo = ConnectStream<messages::FooInterface>(*setup.m_loop, MakeStream(*setup.m_loop, client_fd));
 
@@ -154,12 +154,8 @@ KJ_TEST("ConnectStream throws when the socket disconnects after receiving data")
     std::thread server_thread([&]() {
         char buf[128];
 
-        ssize_t bytes_received =
-            recv(server_fd, buf, sizeof(buf), 0);
-
-        if (bytes_received > 0) {
-            close(server_fd);
-        }
+        recv(server_fd, buf, sizeof(buf), 0);
+        KJ_SYSCALL(close(server_fd));
     });
 
     try {
@@ -186,14 +182,10 @@ KJ_TEST("ConnectStream throws when a connection accepted from a listener disconn
         int connection_fd = accept(server_fd, nullptr, nullptr);
 
         if (connection_fd >= 0) {
-            ssize_t bytes_received =
-                recv(connection_fd, buf, sizeof(buf), 0);
-
-            if (bytes_received > 0) {
-                close(connection_fd);
-            }
+            recv(connection_fd, buf, sizeof(buf), 0);
+            KJ_SYSCALL(close(connection_fd));
         }
-        close(server_fd);
+        KJ_SYSCALL(close(server_fd));
     });
 
     try {

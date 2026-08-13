@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include "common.h"
 #include "unixlistener.h"
 #include <mp/test/foo.capnp.h>
 #include <mp/test/foo.capnp.proxy.h>
@@ -23,7 +24,6 @@
 #include <mp/util.h>
 #include <ratio> // IWYU pragma: keep
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <thread>
 #include <unistd.h>
@@ -42,10 +42,7 @@ class ClientSetup
 public:
     explicit ClientSetup(int fd)
         : thread([this, fd] {
-              EventLoop loop("mptest-client", [](mp::LogMessage log) {
-                  KJ_LOG(INFO, log.level, log.message);
-                  if (log.level == mp::Log::Raise) throw std::runtime_error(log.message);
-              });
+              EventLoop loop("mptest-client", DefaultLogHandler);
               client_promise.set_value(ConnectStream<messages::FooInterface>(loop, MakeStream(loop, fd)));
               loop.loop();
           })
@@ -66,13 +63,6 @@ public:
     //! not start until the other members are initialized.
     std::thread thread;
 };
-
-//! Default server event loop log handler, throws so tests can assert on errors.
-void DefaultLogHandler(mp::LogMessage log)
-{
-    KJ_LOG(INFO, log.level, log.message);
-    if (log.level == mp::Log::Raise) throw std::runtime_error(log.message);
-}
 
 //! Runs a server EventLoop on its own thread, starts ListenConnections() on a
 //! UnixListener socket, and records connection/disconnection counts through

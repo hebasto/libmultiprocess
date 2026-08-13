@@ -1,6 +1,7 @@
 // Copyright (c) The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+#include "common.h"
 #include "unixlistener.h"
 #include <kj/async.h>
 #include <kj/common.h>
@@ -33,14 +34,6 @@ namespace test {
 namespace {
 
 constexpr auto FAILURE_TIMEOUT = std::chrono::seconds{30};
-
-//! Default event loop log handler used by tests, throws so the calling code
-//! can assert on errors.
-void DefaultLogHandler(mp::LogMessage log)
-{
-    if (log.level == mp::Log::Raise)
-        throw std::runtime_error(log.message);
-}
 
 class TestSetup
 {

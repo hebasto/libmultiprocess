@@ -45,14 +45,14 @@ void DefaultLogHandler(mp::LogMessage log)
 class TestSetup
 {
 public:
-    int client_fd;
-    int server_fd;
+    int m_client_fd;
+    int m_server_fd;
 
-    mp::EventLoop* loop;
-    std::optional<mp::EventLoopRef> loop_ref;
+    mp::EventLoop* m_loop;
+    std::optional<mp::EventLoopRef> m_loop_ref;
     //! Thread variable should be after other struct members so the thread does
     //! not start until the other members are initialized.
-    std::thread loop_thread;
+    std::thread m_loop_thread;
 
     TestSetup(mp::LogFn log_handler = DefaultLogHandler)
         : TestSetup(
@@ -65,26 +65,26 @@ public:
               mp::LogFn log_handler = DefaultLogHandler)
     {
         std::promise<mp::EventLoop*> loop_promise;
-        loop_thread = std::thread([&, log_handler] {
+        m_loop_thread = std::thread([&, log_handler] {
             mp::EventLoop loop("mptest-connect", log_handler);
             loop_promise.set_value(&loop);
             loop.loop();
         });
-        loop = loop_promise.get_future().get();
-        loop_ref.emplace(*loop);
+        m_loop = loop_promise.get_future().get();
+        m_loop_ref.emplace(*m_loop);
 
         // Initialize and store sockets
         int fds[2] = {-1, -1};
         init_sockets(fds);
 
-        client_fd = fds[0];
-        server_fd = fds[1];
+        m_client_fd = fds[0];
+        m_server_fd = fds[1];
     }
 
     ~TestSetup()
     {
-        loop_ref.reset();
-        loop_thread.join();
+        m_loop_ref.reset();
+        m_loop_thread.join();
     }
 };
 
@@ -95,11 +95,11 @@ KJ_TEST("ConnectStream connects to a socket serving a valid init interface")
     std::thread server_thread([&setup]() {
         mp::EventLoop server_loop("mptest-valid-server", DefaultLogHandler);
         std::unique_ptr<FooInit> init = std::make_unique<FooInit>();
-        ServeStream<messages::FooInit>(server_loop, MakeStream(server_loop, setup.server_fd), *init);
+        ServeStream<messages::FooInit>(server_loop, MakeStream(server_loop, setup.m_server_fd), *init);
         server_loop.loop();
     });
 
-    auto init = ConnectStream<messages::FooInit>(*setup.loop, MakeStream(*setup.loop, setup.client_fd));
+    auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, setup.m_client_fd));
 
     init.reset();
     server_thread.join();
@@ -110,10 +110,10 @@ KJ_TEST("ConnectStream throws when the socket is already disconnected")
 {
     TestSetup setup;
 
-    close(setup.server_fd);
+    close(setup.m_server_fd);
 
     try {
-        auto init = ConnectStream<messages::FooInit>(*setup.loop, MakeStream(*setup.loop, setup.client_fd));
+        auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, setup.m_client_fd));
 
         KJ_EXPECT(false);
     } catch (const std::runtime_error& e) {
@@ -127,11 +127,11 @@ KJ_TEST("ConnectStream defers disconnect failure to the first IPC request for in
 {
     TestSetup setup;
 
-    close(setup.server_fd);
+    close(setup.m_server_fd);
 
     // Without a construct() method no IPC call is made during client
     // creation, so ConnectStream succeeds even though the peer is gone.
-    auto foo = ConnectStream<messages::FooInterface>(*setup.loop, MakeStream(*setup.loop, setup.client_fd));
+    auto foo = ConnectStream<messages::FooInterface>(*setup.m_loop, MakeStream(*setup.m_loop, setup.m_client_fd));
 
     try {
         foo->add(1, 2);
@@ -158,9 +158,9 @@ KJ_TEST("ConnectStream handles a disconnect when no client calls are made")
         DefaultLogHandler(log);
     });
 
-    close(setup.server_fd);
+    close(setup.m_server_fd);
 
-    auto foo = ConnectStream<messages::FooInterface>(*setup.loop, MakeStream(*setup.loop, setup.client_fd));
+    auto foo = ConnectStream<messages::FooInterface>(*setup.m_loop, MakeStream(*setup.m_loop, setup.m_client_fd));
 
     // The disconnect handler registered by ProxyClientBase should run and
     // delete the connection even when no calls are ever made.
@@ -176,15 +176,15 @@ KJ_TEST("ConnectStream throws when the socket disconnects after receiving data")
         char buf[128];
 
         ssize_t bytes_received =
-            recv(setup.server_fd, buf, sizeof(buf), 0);
+            recv(setup.m_server_fd, buf, sizeof(buf), 0);
 
         if (bytes_received > 0) {
-            close(setup.server_fd);
+            close(setup.m_server_fd);
         }
     });
 
     try {
-        auto init = ConnectStream<messages::FooInit>(*setup.loop, MakeStream(*setup.loop, setup.client_fd));
+        auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, setup.m_client_fd));
 
         if (server_thread.joinable()) server_thread.join();
         KJ_EXPECT(false);
@@ -208,7 +208,7 @@ KJ_TEST("ConnectStream throws when a connection accepted from a listener disconn
     std::thread server_thread([&setup]() {
         char buf[128];
 
-        int connection_fd = accept(setup.server_fd, nullptr, nullptr);
+        int connection_fd = accept(setup.m_server_fd, nullptr, nullptr);
 
         if (connection_fd >= 0) {
             ssize_t bytes_received =
@@ -218,11 +218,11 @@ KJ_TEST("ConnectStream throws when a connection accepted from a listener disconn
                 close(connection_fd);
             }
         }
-        close(setup.server_fd);
+        close(setup.m_server_fd);
     });
 
     try {
-        auto init = ConnectStream<messages::FooInit>(*setup.loop, MakeStream(*setup.loop, setup.client_fd));
+        auto init = ConnectStream<messages::FooInit>(*setup.m_loop, MakeStream(*setup.m_loop, setup.m_client_fd));
 
         if (server_thread.joinable()) server_thread.join();
         KJ_EXPECT(false);

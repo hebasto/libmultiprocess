@@ -668,9 +668,27 @@ KJ_TEST("Call async IPC method dispatched to pool thread")
     }
 }
 
-#ifdef HAVE_PTHREAD_GETNAME_NP
+//! Return whether OS thread names set by SetOsThreadName()
+//! can be read back by ThreadName() on this platform.
+static bool OsThreadNamesSupported()
+{
+    static const bool supported = [] {
+        bool found = false;
+        std::thread([&found] {
+            SetOsThreadName("mptest-probe");
+            found = ThreadName("").find("/mptest-probe-") != std::string::npos;
+        }).join();
+        if (!found) {
+            KJ_LOG(WARNING, "SetOsThreadName() is not implemented on this platform; skipping thread name tests");
+        }
+        return found;
+    }();
+    return supported;
+}
+
 KJ_TEST("Worker thread has OS thread name")
 {
+    if (!OsThreadNamesSupported()) return;
     TestSetup setup;
     ProxyClient<messages::FooInterface>* foo = setup.client.get();
     foo->initThreadMap();
@@ -685,6 +703,7 @@ KJ_TEST("Worker thread has OS thread name")
 
 KJ_TEST("Pool thread has OS thread name")
 {
+    if (!OsThreadNamesSupported()) return;
     TestSetup setup;
     ProxyClient<messages::FooInterface>* foo = setup.client.get();
     foo->initThreadMap();
@@ -717,6 +736,7 @@ KJ_TEST("Pool thread has OS thread name")
 
 KJ_TEST("Async cleanup thread has OS thread name")
 {
+    if (!OsThreadNamesSupported()) return;
     std::promise<std::string> thread_name;
     {
         TestSetup setup;
@@ -728,7 +748,6 @@ KJ_TEST("Async cleanup thread has OS thread name")
     const std::string name{thread_name.get_future().get()};
     KJ_EXPECT(name.find("/capnp-async-") != std::string::npos, name);
 }
-#endif // HAVE_PTHREAD_GETNAME_NP
 
 KJ_TEST("Call async IPC method without thread or pool errors correctly")
 {

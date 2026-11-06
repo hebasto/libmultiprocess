@@ -128,7 +128,7 @@ jobs:
         uses: vmactions/openindiana-vm@v1
         with:
           prepare: |
-            pkg install cmake git ninja
+            pkg install cmake gcc-14 git ninja
           sync: 'rsync'
           copyback: false
 

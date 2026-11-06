@@ -115,6 +115,35 @@ jobs:
           cd ${{ github.workspace }}
           CI_CONFIG="ci/configs/freebsd.bash" bash ci/scripts/ci.sh
 
+  build-openindiana:
+    runs-on: ubuntu-latest
+    name: build • openindiana
+    defaults:
+      run:
+        shell: openindiana {0}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start OpenIndiana VM
+        uses: vmactions/openindiana-vm@v1
+        with:
+          # This release has `metapackages/build-essential` preinstalled,
+          # which includes git, cmake and gcc-14.
+          release: '202610-build'
+          # The `pkg install` command often encounters networking issues
+          # in the CI environment, so each package is installed individually.
+          prepare: |
+            set -e
+            pkg install developer/build/ninja
+            pkg install developer/build/pkgconf
+          sync: 'rsync'
+          copyback: false
+
+      - name: Run CI script
+        run: |
+          cd ${{ github.workspace }}
+          CI_CONFIG="ci/configs/openindiana.bash" bash ci/scripts/ci.sh
+
   build-macos:
     runs-on: macos-latest
     name: build • macos

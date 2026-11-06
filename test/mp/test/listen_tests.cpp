@@ -233,6 +233,10 @@ KJ_TEST("ListenConnections handles a client that disconnects before being accept
         // this specific error here so that the corresponding CI job does not fail.
         //
         // This is a Cap'n Proto bug, fixed by https://github.com/capnproto/capnproto/pull/2748
+        //
+        // On illumos, accept() succeeds, but Cap'n Proto then sets TCP_NODELAY on the accepted
+        // socket, and setsockopt() fails with EINVAL on a Unix socket whose peer has already
+        // closed. Cap'n Proto tolerates that errno only on FreeBSD.
         if (log.level == mp::Log::Error && log.message.find("Uncaught exception in daemonized task.") != std::string::npos) {
             Lock lock(mutex);
             accept_error = true;
@@ -253,8 +257,8 @@ KJ_TEST("ListenConnections handles a client that disconnects before being accept
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-#ifndef __APPLE__
-    // No error is expected on platforms other than macOS.
+#if !defined(__APPLE__) && !defined(__sun)
+    // No error is expected on platforms other than macOS and illumos.
     KJ_REQUIRE(!accept_error_seen());
 #endif
     KJ_EXPECT(server.DisconnectedCount() == (accept_error_seen() ? 0 : 1));

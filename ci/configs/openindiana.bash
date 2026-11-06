@@ -7,5 +7,8 @@ export CXXFLAGS="-Werror -Wall -Wextra -Wpedantic -Wunused -Wunused-const-variab
 CAPNP_CHECKOUT=v1.5.0
 # KJ fibers do not work on illumos.
 CAPNP_CMAKE_ARGS=(-DWITH_FIBERS=OFF)
-CMAKE_ARGS=(-G Ninja)
+# The socket API lives in libsocket and libnsl on illumos, and neither the
+# Cap'n Proto build nor this project links them.
+CAPNP_CMAKE_ARGS+=("-DCMAKE_EXE_LINKER_FLAGS=-lsocket -lnsl")
+CMAKE_ARGS=(-G Ninja "-DCMAKE_EXE_LINKER_FLAGS=-lsocket -lnsl")
 BUILD_ARGS=(-k 0)

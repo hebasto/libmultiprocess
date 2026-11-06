@@ -135,19 +135,6 @@ jobs:
           sync: 'rsync'
           copyback: false
 
-      - name: Install Cap'n Proto
-        # OpenIndiana does not package Cap'n Proto, so build it from source.
-        env:
-          CAPNPROTO_VERSION: '1.5.0'
-        run: |
-          set -e
-          cd "$HOME"
-          curl --location --fail --remote-name https://capnproto.org/capnproto-c++-${{ env.CAPNPROTO_VERSION }}.tar.gz
-          tar xf capnproto-c++-${{ env.CAPNPROTO_VERSION }}.tar.gz
-          cd capnproto-c++-${{ env.CAPNPROTO_VERSION }}
-          ./configure --without-fibers
-          make -j $(getconf NPROCESSORS_ONLN) install
-
       - name: Run CI script
         run: |
           cd ${{ github.workspace }}

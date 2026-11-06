@@ -115,6 +115,44 @@ jobs:
           cd ${{ github.workspace }}
           CI_CONFIG="ci/configs/freebsd.bash" bash ci/scripts/ci.sh
 
+  build-openindiana:
+    runs-on: ubuntu-latest
+    name: build • openindiana
+    defaults:
+      run:
+        shell: openindiana {0}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start OpenIndiana VM
+        uses: vmactions/openindiana-vm@v1
+        with:
+          # The "-build" image has metapackages/build-essential preinstalled,
+          # which includes git, cmake and gcc.
+          release: '202610-build'
+          prepare: |
+            pkg install ninja pkgconf
+          sync: 'rsync'
+          copyback: false
+
+      - name: Install Cap'n Proto
+        # OpenIndiana does not package Cap'n Proto, so build it from source.
+        env:
+          CAPNPROTO_VERSION: '1.5.0'
+        run: |
+          set -e
+          cd "$HOME"
+          curl --location --fail --remote-name https://capnproto.org/capnproto-c++-${{ env.CAPNPROTO_VERSION }}.tar.gz
+          tar xf capnproto-c++-${{ env.CAPNPROTO_VERSION }}.tar.gz
+          cd capnproto-c++-${{ env.CAPNPROTO_VERSION }}
+          ./configure --without-fibers
+          make -j $(getconf NPROCESSORS_ONLN) install
+
+      - name: Run CI script
+        run: |
+          cd ${{ github.workspace }}
+          CI_CONFIG="ci/configs/openindiana.bash" bash ci/scripts/ci.sh
+
   build-macos:
     runs-on: macos-latest
     name: build • macos

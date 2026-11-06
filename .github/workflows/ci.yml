@@ -127,9 +127,6 @@ jobs:
       - name: Start OpenIndiana VM
         uses: vmactions/openindiana-vm@v1
         with:
-          # The "-build" image has metapackages/build-essential preinstalled,
-          # which includes git, cmake and gcc.
-          release: '202610-build'
           prepare: |
             pkg install ninja pkgconf
           sync: 'rsync'

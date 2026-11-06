@@ -6,5 +6,5 @@ export CXXFLAGS="-pthread -Werror -Wall -Wextra -Wpedantic -Wunused -Wunused-con
 # Cap'n Proto is built from source and installed under /usr/local.
 # See the "Install Cap'n Proto" step in .github/workflows/ci.yml.
 # The socket API lives in libsocket on illumos.
-CMAKE_ARGS=(-G Ninja -DCMAKE_PREFIX_PATH=/usr/local "-DCMAKE_EXE_LINKER_FLAGS=-lsocket -lnsl")
+CMAKE_ARGS=(-G Ninja -DCMAKE_PREFIX_PATH=/usr/local -DCMAKE_EXE_LINKER_FLAGS=-lsocket)
 BUILD_ARGS=(-k 0)

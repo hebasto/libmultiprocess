@@ -184,6 +184,9 @@ void SetOsThreadName(const char* name)
     ::prctl(PR_SET_NAME, name, 0, 0, 0);
 #elif defined(HAVE_PTHREAD_SETNAME_NP_3ARG)
     pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name));
+#elif defined(HAVE_PTHREAD_SETNAME_NP_2ARG)
+    // illumos (OmniOS, OpenIndiana) and glibc without PR_SET_NAME.
+    pthread_setname_np(pthread_self(), name);
 #elif defined(HAVE_PTHREAD_GETTHREADID_NP)
     pthread_set_name_np(pthread_self(), name);
 #elif defined(__APPLE__)

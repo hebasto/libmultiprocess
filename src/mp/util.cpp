@@ -184,6 +184,8 @@ void SetOsThreadName(const char* name)
     ::prctl(PR_SET_NAME, name, 0, 0, 0); // Linux
 #elif defined(HAVE_PTHREAD_SETNAME_NP_3ARG)
     pthread_setname_np(pthread_self(), "%s", const_cast<char*>(name)); // NetBSD
+#elif defined(HAVE_PTHREAD_SETNAME_NP_2ARG)
+    pthread_setname_np(pthread_self(), name); // illumos
 #elif defined(HAVE_PTHREAD_GETTHREADID_NP)
     pthread_set_name_np(pthread_self(), name); // FreeBSD, OpenBSD
 #elif defined(__APPLE__)

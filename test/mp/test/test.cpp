@@ -668,7 +668,7 @@ KJ_TEST("Call async IPC method dispatched to pool thread")
     }
 }
 
-#ifdef HAVE_PTHREAD_GETNAME_NP
+#if defined(HAVE_PTHREAD_GETNAME_NP) || defined(HAVE_PTHREAD_GET_NAME_NP)
 KJ_TEST("Worker thread has OS thread name")
 {
     TestSetup setup;
@@ -728,7 +728,7 @@ KJ_TEST("Async cleanup thread has OS thread name")
     const std::string name{thread_name.get_future().get()};
     KJ_EXPECT(name.find("/capnp-async-") != std::string::npos, name);
 }
-#endif // HAVE_PTHREAD_GETNAME_NP
+#endif
 
 KJ_TEST("Call async IPC method without thread or pool errors correctly")
 {

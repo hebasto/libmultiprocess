@@ -102,6 +102,8 @@ if(MP_ENABLE_IWYU)
   # Run IWYU through a wrapper so its diagnostics are shown when it fails
   # without suggesting includes (see cmake/iwyu-wrapper.sh).
   set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/iwyu-wrapper.sh;${IWYU_EXECUTABLE};-Xiwyu;--error;-w")
+  # Temporary: log associated-header decisions.
+  list(APPEND CMAKE_CXX_INCLUDE_WHAT_YOU_USE "-Xiwyu" "--verbose=4")
   if(DEFINED ENV{IWYU_MAPPING_FILE})
     list(APPEND CMAKE_CXX_INCLUDE_WHAT_YOU_USE "-Xiwyu" "--mapping_file=$ENV{IWYU_MAPPING_FILE}")
   endif()

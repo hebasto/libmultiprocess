@@ -16,6 +16,11 @@ shift
 out=$("$iwyu" "$@" 2>&1)
 ret=$?
 printf '%s\n' "$out" >&2
+# CMake discards the output above unless it contains include suggestions, so
+# optionally append it to a log file as well.
+if [ -n "${IWYU_LOG:-}" ]; then
+  printf '%s\n' "$out" >> "$IWYU_LOG"
+fi
 if [ "$ret" -ne 0 ] && ! grep -q -e 'should add these lines:' -e 'should remove these lines:' <<<"$out"; then
   printf 'include-what-you-use failed with exit status %s before suggesting includes (marker for CMake: "should add these lines:"); see the diagnostics above.\n' "$ret" >&2
 fi

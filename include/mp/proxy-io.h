@@ -10,7 +10,12 @@
 
 #include <mp/proxy.capnp.h>
 
+#include <capnp/capability.h>
+#include <capnp/common.h>
+#include <capnp/message.h>
 #include <capnp/rpc-twoparty.h>
+#include <capnp/rpc-twoparty.capnp.h>
+#include <capnp/rpc.h>
 
 #include <any>
 #include <assert.h>
@@ -18,19 +23,36 @@
 #include <condition_variable>
 #include <cstdlib>
 #include <functional>
+#include <kj/async-io.h>
+#include <kj/async-prelude.h>
+#include <kj/async.h>
+#include <kj/common.h>
+#include <kj/exception.h>
 #include <kj/function.h>
-#include <kj/io.h>
+#include <kj/memory.h>
+#include <kj/string.h>
+#include <list>
 #include <map>
 #include <memory>
 #include <optional>
 #include <ranges>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <thread>
+#include <tuple>
+#include <utility>
+#include <variant>
+#include <vector>
 
 namespace mp {
+class Connection;
+class EventLoop;
+template <typename Interface>
+struct ProxyClient;
+template <typename Interface>
+struct ProxyServer;
 struct ThreadContext;
-struct Listener;
 
 struct InvokeContext
 {

@@ -5,10 +5,31 @@
 #ifndef MP_PROXY_TYPE_CONTEXT_H
 #define MP_PROXY_TYPE_CONTEXT_H
 
+#include <mp/proxy.h>
 #include <mp/proxy-io.h>
+#include <mp/test/foo-types.h>
 #include <mp/util.h>
 
+#include <mp/proxy.capnp.h>
+
+#include <capnp/capability.h>
+
+#include <cassert>
+#include <functional>
+#include <kj/async.h>
+#include <kj/common.h>
+#include <kj/exception.h>
+#include <kj/memory.h>
 #include <kj/string.h>
+#include <memory>
+#include <mutex>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace mp {
 template <typename Output>

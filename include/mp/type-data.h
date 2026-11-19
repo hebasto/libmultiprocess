@@ -9,7 +9,6 @@
 
 #include <concepts>
 #include <span>
-#include <ranges>
 
 namespace mp {
 template <typename T, typename U>

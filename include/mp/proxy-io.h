@@ -45,6 +45,11 @@
 #include <variant>
 #include <vector>
 
+namespace kj {
+template <typename Signature>
+class FunctionParam;
+} // namespace kj
+
 namespace mp {
 class Connection;
 class EventLoop;

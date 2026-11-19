@@ -6,18 +6,44 @@
 #define MP_PROXY_TYPES_H
 
 #include <mp/proxy-io.h>
+#include <mp/proxy.h>
+#include <mp/util.h>
 
+#include <capnp/common.h>
+
+#include <atomic>
+#include <cassert>
+#include <condition_variable>
+#include <cstddef>
 #include <exception>
+#include <kj/async.h>
+#include <kj/common.h>
+#include <kj/exception.h>
+#include <kj/string.h>
+#include <map>
+#include <memory>
+#include <new>
 #include <optional>
-#include <set>
+#include <ostream>
+#include <stdexcept>
+#include <string>
+#include <tuple>
 #include <typeindex>
-#include <vector>
+#include <type_traits>
+#include <utility>
 
 // KJ exception support is required, or exceptions thrown in serverInvoke below go uncaught
 // and crash the process instead of being returned to the client as errors.
 #if defined(KJ_NO_EXCEPTIONS) && KJ_NO_EXCEPTIONS
 #error "KJ_NO_EXCEPTIONS=1 is set but libmultiprocess requires support for exceptions. Please check build settings. On NetBSD you may also need to set -DKJ_NO_EXCEPTIONS=0 -DKJ_NO_RTTI=0 explicitly (https://github.com/capnproto/capnproto/pull/2756)"
 #endif
+
+namespace capnp {
+template <typename Params, typename Results>
+class Request;
+template <typename Results>
+class Response;
+} // namespace capnp
 
 namespace mp {
 

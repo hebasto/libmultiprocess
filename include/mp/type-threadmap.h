@@ -5,7 +5,13 @@
 #ifndef MP_PROXY_TYPE_THREADMAP_H
 #define MP_PROXY_TYPE_THREADMAP_H
 
+#include <mp/proxy.h>
+#include <mp/proxy-io.h>
 #include <mp/util.h>
+
+#include <mp/proxy.capnp.h>
+
+#include <kj/memory.h>
 
 namespace mp {
 template <>

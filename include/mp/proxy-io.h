@@ -47,7 +47,7 @@
 
 namespace kj {
 template <typename Signature>
-class FunctionParam;
+class FunctionParam; // IWYU pragma: keep
 } // namespace kj
 
 namespace mp {
